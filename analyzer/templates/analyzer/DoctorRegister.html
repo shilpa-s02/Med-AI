@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Registration | MedAI Diagnose</title>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(to right, #0f4c75, #3282b8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wrapper {
+            width: 900px;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+        }
+
+        /* Left Info Panel */
+        .info-panel {
+            width: 45%;
+            background: linear-gradient(to bottom, #083d77, #0f4c75);
+            color: white;
+            padding: 50px 40px;
+        }
+
+        .info-panel h1 {
+            font-size: 30px;
+            margin-bottom: 15px;
+        }
+
+        .info-panel p {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .info-panel ul {
+            padding-left: 18px;
+        }
+
+        .info-panel ul li {
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        /* Right Form Panel */
+        .form-panel {
+            width: 55%;
+            padding: 45px 40px;
+        }
+
+        .form-panel h2 {
+            text-align: center;
+            color: #083d77;
+            margin-bottom: 8px;
+        }
+
+        .form-panel p {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .icon {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #0f4c75;
+            box-shadow: 0 0 4px rgba(15,76,117,0.5);
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(to right, #083d77, #0f4c75);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .register-btn:hover {
+            opacity: 0.9;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 14px;
+        }
+
+        .footer-text a {
+            color: #083d77;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+    <!-- LEFT PANEL -->
+    <div class="info-panel">
+        <h1>🧠 MedAI Diagnose</h1>
+        <p>
+            Join our AI-powered medical imaging diagnosis platform and
+            enhance clinical decision-making using deep learning and
+            explainable AI.
+        </p>
+
+        <ul>
+            <li>✔ Secure hospital-style workflow</li>
+            <li>✔ AI diagnosis with confidence scores</li>
+            <li>✔ Explainable heatmaps (Grad-CAM)</li>
+            <li>✔ Supports X-ray, MRI, CT & skin images</li>
+        </ul>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="form-panel">
+
+        <div class="icon">🩺</div> 
+        {% comment %} <div class="icon">👨‍⚕️</div> {% endcomment %}
+        <h2>Doctor Registration</h2>
+        <p>Create your professional account</p>
+
+        {% comment %} {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %} {% endcomment %}
+
+        <form method="post">
+            {% csrf_token %}
+            {% if messages %}
+                    {% for message in messages %}
+                        <p class="error-message">{{ message}}</p>
+                    {% endfor %}
+            {% endif %}
+
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Choose a username" required>
+            </div>
+
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            {% comment %} <div class="input-group">
+                 <label>specialization</label>
+                 <input type="text" name="specialization" placeholder="Choose specialization" required>
+            </div> {% endcomment %}
+
+            <div class="input-group">
+                <label>License Number</label>
+                <input type="int" name="license_number" placeholder="Enter your license number" required>
+            </div> 
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Create a strong password" required>
+            </div>
+
+            <div class="input-group">
+                 <label>Confirm Password</label>
+                 <input type="password" name="confirmpassword" placeholder="Confirm password" required>
+            </div>
+
+            <button type="submit" class="register-btn">Create Account</button>
+        </form>
+
+        <div class="footer-text">
+            Already registered?
+            <a href="{% url 'doctorlogin' %}">Login here</a>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

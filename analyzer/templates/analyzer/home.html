@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedAI Diagnose | Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --main-blue: #1a5f7a; --light-blue: #f0f7ff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Hero Styling */
+        .hero-section {
+            background: linear-gradient(rgba(26, 95, 122, 0.9), rgba(26, 95, 122, 0.9)), 
+                        url('https://via.placeholder.com/1920x600?text=Medical+Imaging+Background');
+            background-size: cover;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        /* Navbar Styling */
+        .navbar { background-color: var(--main-blue); padding: 15px 0; }
+        .nav-link { color: white !important; font-weight: 500; margin: 0 10px; }
+
+        /* Feature Card Styling */
+        .feature-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+            height: 100%;
+        }
+        .feature-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="#">🧠 MedAI Diagnose</a>
+            <div class="ms-auto">
+                <a class="nav-link d-inline" href="#">Home</a>
+                <a class="nav-link d-inline" href="{% url 'doctorlogin' %}">Doctor</a>
+                <a class="nav-link d-inline" href="#radiologist">Radiologist</a>
+               
+                <a class="nav-link d-inline" href="{% url 'index' %}">Upload Image</a>
+                <a class="nav-link d-inline" href="/register/">Patients</a>
+                <a class="nav-link d-inline" href="#">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero-section">
+        <div class="container">
+            <h1 class="display-4 fw-bold">MedAI Diagnose</h1>
+            <p class="lead mt-3">An AI-powered clinical decision support platform that assists doctors and radiologists in diagnosing diseases from X-ray, MRI, and skin images using deep learning and explainable AI.</p>
+            <a href="/register/" class="btn btn-light btn-lg px-5 mt-4 rounded-pill fw-bold" style="color: var(--main-blue);">Start Diagnosis</a>
+        </div>
+    </header>
+
+    <section class="container py-5">
+        <h2 class="text-center fw-bold mb-5" style="color: var(--main-blue);">Core System Features</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card feature-card p-4">
+                    <h5>🌌 Multi-Modal Imaging</h5>
+                    <p class="small text-muted">Supports X-ray, MRI, and skin lesion images including DICOM formats.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card feature-card p-4">
+                    <h5>🤖 AI-Based Diagnosis</h5>
+                    <p class="small text-muted">Deep learning models generate disease predictions with confidence scores.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card feature-card p-4">
+                    <h5>🔥 Explainable AI</h5>
+                    <p class="small text-muted">Grad-CAM heatmaps highlight important regions influencing AI decisions.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card feature-card p-4">
+                    <h5>📊 Clinical Decision Support</h5>
+                    <p class="small text-muted">AI assists doctors but never replaces clinical judgement.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% comment %} <section id="doctor" class="bg-light py-5">
+        <div class="container text-center">
+            <h2 class="fw-bold mb-4">Doctor Section</h2>
+            <p class="mb-4">Register patients [cite: 31, 32], upload medical images [cite: 36], and review AI-generated reports with explainable heatmaps[cite: 23, 24].</p>
+            <a href="/register/" class="btn btn-primary px-4">Access Doctor Portal</a>
+        </div>
+    </section> {% endcomment %}
+
+    {% comment %} <section id="radiologist" class="py-5">
+        <div class="container text-center">
+            <h2 class="fw-bold mb-4">Radiologist Section</h2>
+            <p class="mb-4">Expert review of imaging metadata [cite: 38], addition of clinical annotations [cite: 28], and expert verification of AI predictions[cite: 29].</p>
+            <a href="#" class="btn btn-secondary px-4">Access Radiologist Portal</a>
+        </div>
+    </section> {% endcomment %}
+
+</body>
+</html>

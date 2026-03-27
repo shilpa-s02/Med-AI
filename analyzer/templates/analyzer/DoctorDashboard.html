@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Patient Management</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+/* Page background */
+
+body{
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+display:flex;
+}
+
+/* Sidebar */
+
+.sidebar{
+width:250px;
+height:100vh;
+background:#0b2c59;
+color:white;
+padding:25px;
+position:fixed;
+}
+
+.sidebar h2{
+text-align:center;
+margin-bottom:40px;
+}
+
+.sidebar a{
+display:block;
+color:white;
+text-decoration:none;
+padding:12px;
+margin:10px 0;
+border-radius:8px;
+transition:0.3s;
+}
+
+.sidebar a:hover{
+background:#1e4fa1;
+transform:translateX(5px);
+}
+
+/* Main content */
+
+.main{
+margin-left:260px;
+padding:40px;
+width:100%;
+}
+
+/* Header */
+
+.header{
+color:white;
+margin-bottom:25px;
+}
+
+.header h1{
+font-size:32px;
+}
+
+/* Form Card */
+
+.form-card{
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
+margin-bottom:30px;
+}
+
+.form-card h3{
+margin-bottom:20px;
+color:#0b2c59;
+}
+
+.form-card input{
+width:100%;
+padding:12px;
+margin:10px 0;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:14px;
+}
+
+.form-card button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+background:#4facfe;
+color:white;
+font-size:16px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.form-card button:hover{
+background:#00c6ff;
+}
+
+/* Table */
+
+.table-card{
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+
+.table-card h3{
+margin-bottom:20px;
+color:#0b2c59;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+table th{
+background:#4facfe;
+color:white;
+padding:12px;
+}
+
+table td{
+padding:12px;
+text-align:center;
+}
+
+table tr:nth-child(even){
+background:#f2f2f2;
+}
+
+.action-btn{
+background:#00c6ff;
+border:none;
+padding:8px 15px;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+.action-btn:hover{
+background:#0099cc;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+
+<h2>👨‍⚕️ Doctor</h2>
+
+<a href="#">🏠 Dashboard</a>
+<a href="#">🧑‍🤝‍🧑 Patients</a>
+<a href="#">🩻 Upload Scan</a>
+<a href="#">🤖 AI Diagnosis</a>
+<a href="#">🚪 Logout</a>
+
+</div>
+
+<!-- Main Section -->
+
+<div class="main">
+
+<div class="header">
+<h1>Patient Management</h1>
+<p>Register and manage patient medical records</p>
+</div>
+
+<!-- Patient Form -->
+
+<div class="form-card">
+
+<h3>Register New Patient</h3>
+
+<form method="POST">
+{% csrf_token %}
+
+<input type="text" name="name" placeholder="Patient Name" required>
+
+<input type="number" name="age" placeholder="Age" required>
+
+<input type="text" name="gender" placeholder="Gender">
+
+<input type="text" name="symptoms" placeholder="Symptoms / Disease">
+
+<button type="submit">Add Patient</button>
+
+</form>
+
+</div>
+
+<!-- Patient Table -->
+
+<div class="table-card">
+
+<h3>Patient Records</h3>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Age</th>
+<th>Gender</th>
+<th>Action</th>
+</tr>
+
+<tr>
+<td>P001</td>
+<td>John Doe</td>
+<td>45</td>
+<td>Male</td>
+<td><button class="action-btn">View</button></td>
+</tr>
+
+<tr>
+<td>P002</td>
+<td>Mary</td>
+<td>38</td>
+<td>Female</td>
+<td><button class="action-btn">View</button></td>
+</tr>
+
+<tr>
+<td>P003</td>
+<td>Alex</td>
+<td>52</td>
+<td>Male</td>
+<td><button class="action-btn">View</button></td>
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+</body>
+</html>
