@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from analyzer import views
-from analyzer.views import index
+
 
 
 

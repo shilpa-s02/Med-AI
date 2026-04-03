@@ -1,30 +1,290 @@
-<!DOCTYPE html>
+{% comment %} <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Result</title>
+    <title>AI Result | MedAI Diagnose</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            background-color: #f8fafc; 
+            font-family: 'Inter', sans-serif; 
+        }
+
+        .result-container {
+            background: white !important;
+            border-left: 5px solid #3b82f6 !important;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .diagnostic-title {
+            color: #3b82f6;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* This targets the bold text from the AI and makes it Dark and Bold */
+        .ai-text strong, .ai-text b {
+            color: #0f172a; /* Deep Navy/Black */
+            font-weight: 800;
+            font-size: 1.15rem;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .ai-text {
+            white-space: pre-wrap;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #475569; /* Professional slate gray for normal text */
+        }
+
+        .img-preview {
+            border: 1px solid #e2e8f0;
+            transition: transform 0.3s ease;
+        }
+
+        .img-preview:hover {
+            transform: scale(1.02);
+        }
+    </style>
 </head>
 <body class="bg-light">
     <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-6">
-                <img src="data:image/png;base64,{{ image_base64 }}" class="img-fluid rounded shadow">
-            </div>
-            <div class="col-md-6">
-                <div class="result-container" style="background: #f8f9fa; border-left: 5px solid #007bff; padding: 20px; border-radius: 8px;">
-                  <h3 style="color: #007bff;">AI Diagnostic Output</h3>
-                <hr>
-                <p style="white-space: pre-wrap; font-size: 1.1rem; line-height: 1.6;">
-                  {{ analysis }}
-                </p>
+        <div class="row g-4">
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm">
+                    <img src="data:image/png;base64,{{ image_base64 }}" class="img-fluid rounded img-preview" alt="Radiology Scan">
+                    <div class="card-body text-center p-2">
+                        <small class="text-muted">Uploaded Radiology Image</small>
+                    </div>
                 </div>
-                {% comment %} <h3>Medical Analysis</h3>
-                <div class="p-3 bg-white border rounded shadow-sm">
-                    {{ analysis|linebreaks }}
-                </div> {% endcomment %}
-                <a href="{% url 'index' %}" class="btn btn-outline-primary mt-3">Back to Upload</a>
+            </div>
+            
+            <div class="col-md-7">
+                <div class="result-container">
+                    <h3 class="diagnostic-title">AI Diagnostic Output</h3>
+                    <hr class="opacity-10">
+                    
+                    <div class="ai-text">
+                        {# We use 'safe' so the <strong> tags from your AI prompt work #}
+                        {{ analysis|safe|linebreaksbr }}
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top">
+                        {% comment %} <a href="{% url 'predict' %}" class="btn btn-primary px-4 py-2 shadow-sm">New Analysis</a> {% endcomment %}
+                        {% comment %} <a href="{% url 'doctordashboard' %}" class="btn btn-outline-secondary px-4 py-2 ms-2">Dashboard</a> {% endcomment %}
+                        {% comment %} <a href="{% url 'index' %}" class="btn btn-outline-primary mt-3">Back to Upload</a> {% endcomment %}
+                        {% comment %} <div class="mt-4 pt-3 border-top">
+                        <a href="{% url 'doctordashboard' %}" class="btn btn-outline-secondary mt-3">Back to Dashboard</a>
+    
+                        <a href="{% url 'radiology_upload' %}" class="btn btn-primary mt-3 ms-2">New Upload</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-muted mt-3 small" style="font-style: italic;">
+                    ⚠️ Disclamer: AI results are for clinical decision support and must be verified by a medical professional.
+                </p>
             </div>
         </div>
     </div>
+</body>
+</html> {% endcomment %} 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic Report | MedAI Diagnose</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #dbeafe;
+            --success: #059669;
+            --warning: #d97706;
+            --slate-800: #1e293b;
+            --slate-600: #475569;
+            --bg: #f1f5f9;
+        }
+
+        body { 
+            background-color: var(--bg); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: var(--slate-800);
+        }
+
+        .report-header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 24px;
+            border: none;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .image-section {
+            background: #0f172a;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 500px;
+        }
+
+        .img-preview {
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            max-height: 550px;
+            object-fit: contain;
+            transition: transform 0.4s ease;
+        }
+
+        .img-preview:hover { transform: scale(1.02); }
+
+        .analysis-section { padding: 2.5rem; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .diagnostic-title {
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--slate-800);
+            margin-bottom: 1.5rem;
+        }
+
+        .ai-content {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        /* Styling AI-generated list items and bold labels */
+        .ai-content strong { color: var(--primary); font-weight: 700; }
+        
+        .patient-info-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-item {
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .info-label { font-size: 0.75rem; color: var(--slate-600); text-transform: uppercase; letter-spacing: 0.05em; }
+        .info-value { font-weight: 600; display: block; }
+
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .disclaimer-box {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #fff7ed;
+            border-radius: 12px;
+            border-left: 4px solid var(--warning);
+            font-size: 0.85rem;
+            color: #9a3412;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="report-header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 fw-bold text-primary"><i class="fa-solid fa-stethoscope me-2"></i>MedAI Diagnose</h4>
+            <div class="text-muted small">Report ID: #{{ scan.id|stringformat:"05d" }}</div>
+        </div>
+    </header>
+
+    <div class="container mb-5">
+        <div class="main-card card">
+            <div class="row g-0">
+                <div class="col-lg-6 image-section">
+                    <img src="data:image/png;base64,{{ image_base64 }}" class="img-fluid img-preview" alt="Radiology Scan">
+                </div>
+                
+                <div class="col-lg-6 analysis-section">
+                    <div class="status-badge">
+                        <i class="fa-solid fa-circle-check me-2"></i> AI Analysis Complete
+                    </div>
+                    
+                    <h2 class="diagnostic-title">Clinical Findings</h2>
+
+                    <div class="patient-info-bar">
+                        <div class="info-item">
+                            <span class="info-label">Patient Name</span>
+                            <span class="info-value">{{ scan.patient.name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Modality</span>
+                            <span class="info-value">{{ scan.modality }}</span>
+                        </div>
+                    </div>
+
+                    <div class="ai-content">
+                        {{ analysis|safe|linebreaksbr }}
+                    </div>
+
+                    <div class="disclaimer-box">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                        <strong>Medical Disclaimer:</strong> This AI-generated insight is a decision support tool. Final diagnosis must be performed by a certified radiologist.
+                    </div>
+
+                    <div class="mt-4 d-flex gap-3">
+                        <a href="{% url 'doctordashboard' %}" class="btn btn-outline-secondary flex-grow-1 p-3 border-0 bg-light fw-bold">
+                            <i class="fa-solid fa-arrow-left me-2"></i> Dashboard
+                        </a>
+                        <a href="{% url 'radiology_upload' %}" class="btn btn-primary flex-grow-1 p-3">
+                            <i class="fa-solid fa-plus me-2"></i> New Analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

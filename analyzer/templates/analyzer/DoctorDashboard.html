@@ -1,258 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Patient Management</title>
+    <meta charset="UTF-8">
+    <title>Clinical Overview | MedAI Diagnose</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --bg-dark: #0f172a;
+            --bg-light: #f1f5f9;
+            --accent-blue: #2563eb;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
 
-<style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Segoe UI',sans-serif;
-}
+        body { background: var(--bg-light); display: flex; min-height: 100vh; color: var(--text-main); }
 
-/* Page background */
+        /* --- SIDEBAR REFINED --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-dark);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
 
-body{
-background:linear-gradient(135deg,#4facfe,#00f2fe);
-display:flex;
-}
+        .brand {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 48px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            letter-spacing: -0.5px;
+        }
 
-/* Sidebar */
+        .nav-menu { list-style: none; flex-grow: 1; }
 
-.sidebar{
-width:250px;
-height:100vh;
-background:#0b2c59;
-color:white;
-padding:25px;
-position:fixed;
-}
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
 
-.sidebar h2{
-text-align:center;
-margin-bottom:40px;
-}
+        .nav-item.active {
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
 
-.sidebar a{
-display:block;
-color:white;
-text-decoration:none;
-padding:12px;
-margin:10px 0;
-border-radius:8px;
-transition:0.3s;
-}
+        .nav-item:hover:not(.active) { color: white; background: rgba(255, 255, 255, 0.08); }
 
-.sidebar a:hover{
-background:#1e4fa1;
-transform:translateX(5px);
-}
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 50px;
+            width: calc(100% - var(--sidebar-width));
+        }
 
-/* Main content */
+        .header { margin-bottom: 40px; }
+        .header h1 { font-size: 32px; font-weight: 800; color: #0f172a; letter-spacing: -1px; }
+        .header p { color: var(--text-muted); font-size: 15px; margin-top: 4px; }
 
-.main{
-margin-left:260px;
-padding:40px;
-width:100%;
-}
+        /* --- STATS CARDS --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 50px;
+        }
 
-/* Header */
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover { transform: translateY(-5px); }
 
-.header{
-color:white;
-margin-bottom:25px;
-}
+        .stat-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 36px; font-weight: 800; color: #0f172a; margin-top: 12px; }
 
-.header h1{
-font-size:32px;
-}
+        /* PULSING STATUS DOT */
+        .status-dot-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #059669;
+            font-weight: 700;
+            font-size: 18px;
+            margin-top: 12px;
+        }
 
-/* Form Card */
+        .pulse {
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-green 2s infinite;
+        }
 
-.form-card{
-background:white;
-padding:30px;
-border-radius:15px;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
-margin-bottom:30px;
-}
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
 
-.form-card h3{
-margin-bottom:20px;
-color:#0b2c59;
-}
+        /* --- TABLE REFINED --- */
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
 
-.form-card input{
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:8px;
-border:1px solid #ccc;
-font-size:14px;
-}
+        .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; color: #0f172a; }
 
-.form-card button{
-width:100%;
-padding:12px;
-border:none;
-border-radius:8px;
-background:#4facfe;
-color:white;
-font-size:16px;
-cursor:pointer;
-transition:0.3s;
-}
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; font-size: 13px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
+        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; color: #334155; }
 
-.form-card button:hover{
-background:#00c6ff;
-}
+        .btn-action { 
+            color: var(--accent-blue); 
+            text-decoration: none; 
+            font-weight: 700; 
+            padding: 8px 16px; 
+            background: #eff6ff; 
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .btn-action:hover { background: var(--accent-blue); color: white; }
 
-/* Table */
-
-.table-card{
-background:white;
-padding:25px;
-border-radius:15px;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
-}
-
-.table-card h3{
-margin-bottom:20px;
-color:#0b2c59;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-}
-
-table th{
-background:#4facfe;
-color:white;
-padding:12px;
-}
-
-table td{
-padding:12px;
-text-align:center;
-}
-
-table tr:nth-child(even){
-background:#f2f2f2;
-}
-
-.action-btn{
-background:#00c6ff;
-border:none;
-padding:8px 15px;
-color:white;
-border-radius:6px;
-cursor:pointer;
-}
-
-.action-btn:hover{
-background:#0099cc;
-}
-
-</style>
+        .patient-name { color: #0f172a; font-weight: 600; }
+    </style>
 </head>
-
 <body>
 
-<!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">⚕️ MedAI Diagnose</div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active">🏠 Dashboard</a>
+            <a href="{% url 'doctor_patient' %}" class="nav-item">🧑‍🤝‍🧑 Patient Management</a>
+            <a href="{% url 'radiology_upload' %}" class="nav-item">🩻 Radiology Upload</a>
+            <a href="{% url 'ai_inference' %}" class="nav-item">🧠 AI Inference</a>
+        </nav>
+        <a href="{% url 'home' %}" class="nav-item" style="color: #f87171; margin-top: auto; border: 1px solid rgba(248, 113, 113, 0.2);">🚪 Logout</a>
+    </aside>
 
-<div class="sidebar">
+    <main class="main-content">
+        <header class="header">
+            <h1>Clinical Overview</h1>
+            <p>Welcome, Dr. {{ doctor_name|default:"Physician" }} | <span style="color: var(--accent-blue); font-weight: 600;">License Verified</span></p>
+        </header>
 
-<h2>👨‍⚕️ Doctor</h2>
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Active Patients</div>
+                <div class="stat-value">{{ total_patients|default:"0" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total AI Analyses</div>
+                <div class="stat-value">{{ total_scans|default:"0" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">System Status</div>
+                <div class="status-dot-container">
+                    <div class="pulse"></div> Operational
+                </div>
+            </div>
+        </section>
 
-<a href="#">🏠 Dashboard</a>
-<a href="#">🧑‍🤝‍🧑 Patients</a>
-<a href="#">🩻 Upload Scan</a>
-<a href="#">🤖 AI Diagnosis</a>
-<a href="#">🚪 Logout</a>
-
-</div>
-
-<!-- Main Section -->
-
-<div class="main">
-
-<div class="header">
-<h1>Patient Management</h1>
-<p>Register and manage patient medical records</p>
-</div>
-
-<!-- Patient Form -->
-
-<div class="form-card">
-
-<h3>Register New Patient</h3>
-
-<form method="POST">
-{% csrf_token %}
-
-<input type="text" name="name" placeholder="Patient Name" required>
-
-<input type="number" name="age" placeholder="Age" required>
-
-<input type="text" name="gender" placeholder="Gender">
-
-<input type="text" name="symptoms" placeholder="Symptoms / Disease">
-
-<button type="submit">Add Patient</button>
-
-</form>
-
-</div>
-
-<!-- Patient Table -->
-
-<div class="table-card">
-
-<h3>Patient Records</h3>
-
-<table>
-
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Age</th>
-<th>Gender</th>
-<th>Action</th>
-</tr>
-
-<tr>
-<td>P001</td>
-<td>John Doe</td>
-<td>45</td>
-<td>Male</td>
-<td><button class="action-btn">View</button></td>
-</tr>
-
-<tr>
-<td>P002</td>
-<td>Mary</td>
-<td>38</td>
-<td>Female</td>
-<td><button class="action-btn">View</button></td>
-</tr>
-
-<tr>
-<td>P003</td>
-<td>Alex</td>
-<td>52</td>
-<td>Male</td>
-<td><button class="action-btn">View</button></td>
-</tr>
-
-</table>
-
-</div>
-
-</div>
+        <section class="table-container">
+            <h3>Recent AI Inference Activity</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Patient</th>
+                        <th>Diagnosis Result</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in recent_scans %}
+                    <tr>
+                        <td style="color: var(--text-muted);">{{ scan.created_at|date:"M d, Y" }}</td>
+                        <td class="patient-name">{{ scan.patient.name }}</td>
+                        <td style="font-style: italic;">"{{ scan.analysis|truncatechars:60 }}"</td>
+                        <td><a href="{% url 'scan_report' scan.id %}" class="btn-action">View Report</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 60px; color: #94a3b8;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">📂</div>
+                            No recent activity found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
 
 </body>
 </html>

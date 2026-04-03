@@ -1,0 +1,293 @@
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Radiology Upload | MedAI Diagnose</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --bg-dark: #0f172a;
+            --bg-light: #f1f5f9;
+            --accent-blue: #2563eb;
+            --text-main: #1e293b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-light); display: flex; min-height: 100vh; }
+
+        .sidebar { width: var(--sidebar-width); background: var(--bg-dark); color: white; position: fixed; height: 100vh; padding: 40px 24px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: #94a3b8; text-decoration: none; border-radius: 12px; margin-bottom: 6px; font-weight: 500; transition: 0.3s; }
+        .nav-item.active { background: var(--accent-blue); color: white; }
+
+        .main-content { margin-left: var(--sidebar-width); padding: 50px; width: calc(100% - var(--sidebar-width)); }
+
+        .upload-card {
+            background: white; border-radius: 24px; padding: 40px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+        }
+
+        /* --- DROPZONE STYLE --- */
+        .dropzone-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8fafc;
+            transition: 0.3s;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .dropzone-area:hover { border-color: var(--accent-blue); background: #eff6ff; }
+        .dropzone-icon { font-size: 48px; margin-bottom: 15px; display: block; }
+        
+        .form-label { font-weight: 600; color: #475569; font-size: 0.9rem; margin-bottom: 8px; }
+        .form-select, .form-control { border-radius: 12px; padding: 12px; border: 1px solid #e2e8f0; }
+
+        .btn-analyze {
+            background: var(--accent-blue); color: white; border: none;
+            width: 100%; padding: 16px; border-radius: 14px;
+            font-weight: 700; font-size: 1.1rem; margin-top: 30px;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+            transition: 0.3s;
+        }
+        .btn-analyze:hover { background: #1d4ed8; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand" style="font-size: 22px; font-weight: 700; margin-bottom: 48px;">⚕️ MedAI Diagnose</div>
+        <nav class="nav-menu">
+            <a href="{% url 'doctordashboard' %}" class="nav-item">🏠 Dashboard</a>
+            <a href="{% url 'doctor_patient' %}" class="nav-item">🧑‍🤝‍🧑 Patient Management</a>
+            <a href="{#}" class="nav-item active">🩻 Radiology Upload</a>
+            <a href="#" class="nav-item">🧠 AI Inference</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="header mb-5">
+            <h1 class="fw-bold text-dark">Radiology Upload</h1>
+            <p class="text-muted">Select a patient and upload medical scans (X-Ray, MRI, CT) for AI Analysis.</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="upload-card">
+                    {% comment %} <form action="{% url 'process_upload' %}" method="POST" enctype="multipart/form-data"> {% endcomment %}
+                    {% comment %} <form action="#" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label text-uppercase">Select Registered Patient</label>
+                            <select name="patient_id" class="form-select shadow-sm" required>
+                                <option value="" disabled selected>Search for a patient...</option>
+                                {% for patient in patients %}
+                                    <option value="{{ patient.id }}">{{ patient.name }} (ID: #{{ patient.id }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="mt-2 text-end">
+                                <small><a href="{% url 'doctor_patient' %}" class="text-decoration-none text-primary">+ Register new patient</a></small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-uppercase">Modality / Scan Type</label>
+                            <div class="d-flex gap-2">
+                                <input type="radio" class="btn-check" name="modality" id="xray" value="X-Ray" checked>
+                                <label class="btn btn-outline-secondary w-100 border-2 py-2" for="xray">🩻 X-Ray</label>
+
+                                <input type="radio" class="btn-check" name="modality" id="mri" value="MRI">
+                                <label class="btn btn-outline-secondary w-100 border-2 py-2" for="mri">🧠 MRI</label>
+
+                                <input type="radio" class="btn-check" name="modality" id="ct" value="CT">
+                                <label class="btn btn-outline-secondary w-100 border-2 py-2" for="ct">💻 CT Scan</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label text-uppercase">Medical Image (DICOM/JPG/PNG)</label>
+                            <div class="dropzone-area" onclick="document.getElementById('fileInput').click()">
+                                <span class="dropzone-icon">☁️</span>
+                                <h5 class="fw-bold mb-1">Click or Drag Image Here</h5>
+                                <p class="text-muted small">Supports high-resolution radiology scans</p>
+                                <input type="file" name="medical_image" id="fileInput" hidden required onchange="updateFileName(this)">
+                                <div id="fileNameDisplay" class="text-primary fw-bold mt-2"></div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-analyze">Start AI Diagnostic Analysis</button>
+                    </form>
+                </div>
+                
+                <p class="text-center text-muted mt-4 small">
+                    All uploads are encrypted and HIPAA compliant.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function updateFileName(input) {
+            const display = document.getElementById('fileNameDisplay');
+            if (input.files.length > 0) {
+                display.innerText = "Selected: " + input.files[0].name;
+            }
+        }
+    </script>
+</body>
+</html>  {% endcomment %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Radiology Upload | MedAI Diagnose</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --bg-dark: #0f172a;
+            --bg-light: #f1f5f9;
+            --accent-blue: #2563eb;
+            --text-main: #1e293b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-light); display: flex; min-height: 100vh; }
+
+        .sidebar { width: var(--sidebar-width); background: var(--bg-dark); color: white; position: fixed; height: 100vh; padding: 40px 24px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 18px; color: #94a3b8; text-decoration: none; border-radius: 12px; margin-bottom: 6px; font-weight: 500; transition: 0.3s; }
+        .nav-item.active { background: var(--accent-blue); color: white; }
+
+        .main-content { margin-left: var(--sidebar-width); padding: 50px; width: calc(100% - var(--sidebar-width)); }
+
+        .upload-card {
+            background: white; border-radius: 24px; padding: 40px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+        }
+
+        /* --- DROPZONE STYLE --- */
+        .dropzone-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8fafc;
+            transition: 0.3s;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .dropzone-area:hover { border-color: var(--accent-blue); background: #eff6ff; }
+        .dropzone-icon { font-size: 48px; margin-bottom: 15px; display: block; }
+        
+        .form-label { font-weight: 600; color: #475569; font-size: 0.9rem; margin-bottom: 8px; }
+        .form-select, .form-control { border-radius: 12px; padding: 12px; border: 1px solid #e2e8f0; }
+
+        .btn-analyze {
+            background: var(--accent-blue); color: white; border: none;
+            width: 100%; padding: 16px; border-radius: 14px;
+            font-weight: 700; font-size: 1.1rem; margin-top: 30px;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+            transition: 0.3s;
+        }
+        .btn-analyze:hover { background: #1d4ed8; transform: translateY(-2px); }
+
+        #fileNameDisplay {
+            background: #f0fdf4;
+            border-radius: 8px;
+            padding: 5px 12px;
+            display: inline-block;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand" style="font-size: 22px; font-weight: 700; margin-bottom: 48px;">⚕️ MedAI Diagnose</div>
+        <nav class="nav-menu">
+            <a href="{% url 'doctordashboard' %}" class="nav-item">🏠 Dashboard</a>
+            <a href="{% url 'doctor_patient' %}" class="nav-item">🧑‍🤝‍🧑 Patient Management</a>
+            <a href="{% url 'radiology_upload' %}" class="nav-item active">🩻 Radiology Upload</a>
+            <a href="{% url 'ai_inference' %}" class="nav-item">🧠 AI Inference</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="header mb-5">
+            <h1 class="fw-bold text-dark">Radiology Upload</h1>
+            <p class="text-muted">Select a patient and upload medical scans (X-Ray, MRI, CT) for AI Analysis.</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="upload-card">
+                    <form action="{% url 'radiology_upload' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label text-uppercase">Select Registered Patient</label>
+                            <select name="patient_id" class="form-select shadow-sm" required>
+                                <option value="" disabled selected>Search for a patient...</option>
+                                {% for patient in patients %}
+                                    <option value="{{ patient.id }}">{{ patient.name }} (ID: #{{ patient.id }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="mt-2 text-end">
+                                <small><a href="{% url 'doctor_patient' %}" class="text-decoration-none text-primary">+ Register new patient</a></small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-uppercase">Modality / Scan Type</label>
+                            <div class="d-flex gap-2">
+                                <input type="radio" class="btn-check" name="scan_type" id="xray" value="X-Ray" checked>
+                                <label class="btn btn-outline-secondary w-100 border-2 py-2" for="xray">🩻 X-Ray</label>
+
+                                <input type="radio" class="btn-check" name="scan_type" id="mri" value="MRI">
+                                <label class="btn btn-outline-secondary w-100 border-2 py-2" for="mri">🧠 MRI</label>
+
+                                <input type="radio" class="btn-check" name="scan_type" id="ct" value="CT">
+                                <label class="btn btn-outline-secondary w-100 border-2 py-2" for="ct">💻 CT Scan</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label text-uppercase">Medical Image (DICOM/JPG/PNG)</label>
+                            <div class="dropzone-area" onclick="document.getElementById('fileInput').click()">
+                                <span class="dropzone-icon">☁️</span>
+                                <h5 class="fw-bold mb-1">Click or Drag Image Here</h5>
+                                <p class="text-muted small">Supports high-resolution radiology scans</p>
+                                <input type="file" name="medical_image" id="fileInput" hidden required onchange="updateFileName(this)">
+                                <div id="fileNameDisplay" class="text-success fw-bold mt-2" style="display:none;"></div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-analyze">Start AI Diagnostic Analysis</button>
+                    </form>
+                </div>
+                
+                <p class="text-center text-muted mt-4 small">
+                    All uploads are encrypted and HIPAA compliant.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function updateFileName(input) {
+            const display = document.getElementById('fileNameDisplay');
+            if (input.files.length > 0) {
+                display.style.display = "inline-block";
+                display.innerText = "📄 Selected: " + input.files[0].name;
+            } else {
+                display.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -44,7 +44,7 @@
                 <a class="nav-link d-inline" href="{% url 'doctorlogin' %}">Doctor</a>
                 <a class="nav-link d-inline" href="#radiologist">Radiologist</a>
                
-                <a class="nav-link d-inline" href="{% url 'index' %}">Upload Image</a>
+                {% comment %} <a class="nav-link d-inline" href="{% url 'radiology_upload' %}">Upload Image</a> {% endcomment %}
                 <a class="nav-link d-inline" href="/register/">Patients</a>
                 <a class="nav-link d-inline" href="#">Login</a>
             </div>
@@ -55,7 +55,7 @@
         <div class="container">
             <h1 class="display-4 fw-bold">MedAI Diagnose</h1>
             <p class="lead mt-3">An AI-powered clinical decision support platform that assists doctors and radiologists in diagnosing diseases from X-ray, MRI, and skin images using deep learning and explainable AI.</p>
-            <a href="/register/" class="btn btn-light btn-lg px-5 mt-4 rounded-pill fw-bold" style="color: var(--main-blue);">Start Diagnosis</a>
+            <a href="{% url 'doctorlogin' %}" class="btn btn-light btn-lg px-5 mt-4 rounded-pill fw-bold" style="color: var(--main-blue);">Start Diagnosis</a>
         </div>
     </header>
 
