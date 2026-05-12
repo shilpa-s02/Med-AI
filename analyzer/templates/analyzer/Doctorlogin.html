@@ -121,7 +121,7 @@
         <div class="error">{{ error }}</div>
     {% endif %} {% endcomment %}
 
-    <form method="post">
+    <form method="POST">
         {% csrf_token %}
         {% if messages %}
                     {% for message in messages %}

@@ -81,11 +81,11 @@ def doctor_login(request):
         pass_word = request.POST.get('password')
 
         try:
-            user = DoctorRegisterModel.objects.get(email=email_id)
-            if user.password == pass_word:
-                request.session['doctor_id'] = user.id
+            user = DoctorRegisterModel.objects.get(email=email_id, password=pass_word)
+            if user:
                 messages.success(request, f"Welcome back, Dr")
-                return redirect('doctordashboard')
+                # return redirect('doctordashboard')
+                return render(request, 'analyzer/doctordashboard.html')
             else:
                 messages.error(request, "Invalid password.")
         except DoctorRegisterModel.DoesNotExist:
@@ -94,7 +94,7 @@ def doctor_login(request):
     return render(request, 'analyzer/Doctorlogin.html')
 
 # Doctor Dashboard
-@login_required
+# @login_required
 def doctordashboard(request):
     total_patients = Patient.objects.count()
     total_scans = Scan.objects.count()
