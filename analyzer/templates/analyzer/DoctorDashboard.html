@@ -1,9 +1,12 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Clinical Overview | MedAI Diagnose</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --sidebar-width: 280px;
@@ -16,10 +19,9 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-
         body { background: var(--bg-light); display: flex; min-height: 100vh; color: var(--text-main); }
 
-        /* --- SIDEBAR REFINED --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             width: var(--sidebar-width);
             background: var(--bg-dark);
@@ -32,189 +34,117 @@
             z-index: 100;
         }
 
-        .brand {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 48px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            letter-spacing: -0.5px;
-        }
-
+        .brand { font-size: 22px; font-weight: 700; margin-bottom: 48px; display: flex; align-items: center; gap: 10px; }
         .nav-menu { list-style: none; flex-grow: 1; }
-
         .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
-            color: #94a3b8;
-            text-decoration: none;
-            border-radius: 12px;
-            margin-bottom: 6px;
-            font-weight: 500;
-            font-size: 15px;
-            transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+            color: #94a3b8; text-decoration: none; border-radius: 12px;
+            margin-bottom: 6px; font-weight: 500; transition: all 0.3s ease;
         }
-
-        .nav-item.active {
-            background: var(--accent-blue);
-            color: white;
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
-        }
-
+        .nav-item.active { background: var(--accent-blue); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
         .nav-item:hover:not(.active) { color: white; background: rgba(255, 255, 255, 0.08); }
 
         /* --- MAIN CONTENT --- */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            padding: 50px;
-            width: calc(100% - var(--sidebar-width));
-        }
-
+        .main-content { margin-left: var(--sidebar-width); padding: 50px; width: calc(100% - var(--sidebar-width)); }
         .header { margin-bottom: 40px; }
-        .header h1 { font-size: 32px; font-weight: 800; color: #0f172a; letter-spacing: -1px; }
-        .header p { color: var(--text-muted); font-size: 15px; margin-top: 4px; }
+        .header h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
 
         /* --- STATS CARDS --- */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            margin-bottom: 50px;
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 50px; }
+        .stat-card { background: white; padding: 30px; border-radius: 20px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; }
+        .stat-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+        .stat-value { font-size: 36px; font-weight: 800; margin-top: 12px; }
 
-        .stat-card {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: var(--card-shadow);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover { transform: translateY(-5px); }
-
-        .stat-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 36px; font-weight: 800; color: #0f172a; margin-top: 12px; }
-
-        /* PULSING STATUS DOT */
-        .status-dot-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #059669;
-            font-weight: 700;
-            font-size: 18px;
-            margin-top: 12px;
-        }
-
-        .pulse {
-            width: 12px;
-            height: 12px;
-            background: #10b981;
-            border-radius: 50%;
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            animation: pulse-green 2s infinite;
-        }
-
-        @keyframes pulse-green {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        /* --- TABLE REFINED --- */
-        .table-container {
-            background: white;
-            border-radius: 20px;
-            padding: 35px;
-            box-shadow: var(--card-shadow);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; color: #0f172a; }
-
+        /* --- TABLE --- */
+        .table-container { background: white; border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; }
+        .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; font-size: 13px; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid #f1f5f9; }
-        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+        th { text-align: left; padding: 15px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid #f1f5f9; }
+        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; }
 
-        .btn-action { 
-            color: var(--accent-blue); 
-            text-decoration: none; 
-            font-weight: 700; 
-            padding: 8px 16px; 
-            background: #eff6ff; 
-            border-radius: 8px;
-            transition: all 0.2s;
+        /* --- BADGES --- */
+        .badge-ai { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .status-tag { padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; }
+        .status-new { background: #dcfce7; color: #166534; }
+
+        .btn-review { 
+            color: white; background: var(--accent-blue); padding: 10px 20px; 
+            border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 14px;
+            transition: 0.2s; display: inline-block;
         }
-        
-        .btn-action:hover { background: var(--accent-blue); color: white; }
+        .btn-review:hover { background: #1d4ed8; transform: translateY(-2px); }
 
-        .patient-name { color: #0f172a; font-weight: 600; }
+        .pulse { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 2s infinite; }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
-        <div class="brand">⚕️ MedAI Diagnose</div>
+        <div class="brand"><i class="fa-solid fa-house-medical"></i> MedAI Diagnose</div>
         <nav class="nav-menu">
-            <a href="#" class="nav-item active">🏠 Dashboard</a>
-            <a href="{% url 'doctor_patient' %}" class="nav-item">🧑‍🤝‍🧑 Patient Management</a>
-            <a href="{% url 'radiology_upload' %}" class="nav-item">🩻 Radiology Upload</a>
-            <a href="{% url 'ai_inference' %}" class="nav-item">🧠 AI Inference</a>
+            <a href="#" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="{% url 'doctor_patient' %}" class="nav-item"><i class="fa-solid fa-users"></i> Patient List</a>
+            <a href="{% url 'ai_inference' %}" class="nav-item"><i class="fa-solid fa-microscope"></i> All History</a>
         </nav>
-        <a href="{% url 'home' %}" class="nav-item" style="color: #f87171; margin-top: auto; border: 1px solid rgba(248, 113, 113, 0.2);">🚪 Logout</a>
+        <a href="{% url 'home' %}" class="nav-item" style="color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2);"><i class="fa-solid fa-door-open"></i> Logout</a>
     </aside>
 
     <main class="main-content">
         <header class="header">
             <h1>Clinical Overview</h1>
-            <p>Welcome, Dr. {{ doctor_name|default:"Physician" }} | <span style="color: var(--accent-blue); font-weight: 600;">License Verified</span></p>
+            <p>Welcome, Dr. {{ doctor_name|default:"Physician" }} | <span style="color: var(--accent-blue); font-weight: 600;">Active Session</span></p>
         </header>
 
         <section class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label">Active Patients</div>
-                <div class="stat-value">{{ total_patients|default:"0" }}</div>
+                <div class="stat-label">Pending Reviews</div>
+                <div class="stat-value" style="color: var(--accent-blue);">{{ pending_count|default:"0" }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Total AI Analyses</div>
+                <div class="stat-label">AI Analyses (Total)</div>
                 <div class="stat-value">{{ total_scans|default:"0" }}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">System Status</div>
-                <div class="status-dot-container">
-                    <div class="pulse"></div> Operational
+                <div class="stat-label">Radiology Feed</div>
+                <div style="margin-top: 15px; font-weight: 600; color: #10b981;">
+                    <div class="pulse"></div> Live Sync Active
                 </div>
             </div>
         </section>
 
         <section class="table-container">
-            <h3>Recent AI Inference Activity</h3>
+            <h3>Recent Radiology Intake & AI Findings</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Patient</th>
-                        <th>Diagnosis Result</th>
+                        <th>Intake Date</th>
+                        <th>Patient Name</th>
+                        <th>AI Prediction</th>
+                        <th>Confidence</th>
+                        <th>Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for scan in recent_scans %}
                     <tr>
-                        <td style="color: var(--text-muted);">{{ scan.created_at|date:"M d, Y" }}</td>
-                        <td class="patient-name">{{ scan.patient.name }}</td>
-                        <td style="font-style: italic;">"{{ scan.analysis|truncatechars:60 }}"</td>
-                        <td><a href="{% url 'scan_report' scan.id %}" class="btn-action">View Report</a></td>
+                        <td style="color: var(--text-muted);">{{ scan.created_at|date:"M d, H:i" }}</td>
+                        <td style="font-weight: 600;">{{ scan.patient_name }}</td>
+                        <td><span class="badge-ai">{{ scan.prediction }}</span></td>
+                        <td>{{ scan.confidence }}%</td>
+                        <td><span class="status-tag status-new">Awaiting Review</span></td>
+                        <td><a href="{% url 'scan_report' scan.id %}" class="btn-review">Finalize Diagnosis</a></td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 60px; color: #94a3b8;">
-                            <div style="font-size: 40px; margin-bottom: 10px;">📂</div>
-                            No recent activity found.
+                        <td colspan="6" style="text-align: center; padding: 80px; color: #94a3b8;">
+                            <i class="fa-regular fa-folder-open" style="font-size: 40px; margin-bottom: 15px; display: block;"></i>
+                            No scans awaiting your review at this time.
                         </td>
                     </tr>
                     {% endfor %}
@@ -224,4 +154,321 @@
     </main>
 
 </body>
-</html>
+</html> 
+
+
+
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clinical Overview | MedAI Diagnose</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --bg-dark: #0f172a;
+            --bg-light: #f1f5f9;
+            --accent-blue: #2563eb;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-light); display: flex; min-height: 100vh; color: var(--text-main); }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width); background: var(--bg-dark); color: white;
+            position: fixed; height: 100vh; padding: 40px 24px;
+            display: flex; flex-direction: column; z-index: 100;
+        }
+
+        .brand { font-size: 22px; font-weight: 700; margin-bottom: 48px; display: flex; align-items: center; gap: 10px; }
+        .nav-menu { list-style: none; flex-grow: 1; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+            color: #94a3b8; text-decoration: none; border-radius: 12px;
+            margin-bottom: 6px; font-weight: 500; transition: all 0.3s ease;
+        }
+        .nav-item.active { background: var(--accent-blue); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
+        .nav-item:hover:not(.active) { color: white; background: rgba(255, 255, 255, 0.08); }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { margin-left: var(--sidebar-width); padding: 50px; width: calc(100% - var(--sidebar-width)); }
+        .header { margin-bottom: 40px; }
+        .header h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+
+        /* --- STATS CARDS --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 50px; }
+        .stat-card { background: white; padding: 30px; border-radius: 20px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; }
+        .stat-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+        .stat-value { font-size: 36px; font-weight: 800; margin-top: 12px; }
+
+        /* --- TABLE --- */
+        .table-container { background: white; border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; }
+        .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid #f1f5f9; }
+        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; }
+
+        /* --- BADGES --- */
+        .badge-ai { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .status-tag { padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; }
+        .status-new { background: #dcfce7; color: #166534; }
+
+        .btn-review { 
+            color: white; background: var(--accent-blue); padding: 10px 20px; 
+            border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 14px;
+            transition: 0.2s; display: inline-block;
+        }
+        .btn-review:hover { background: #1d4ed8; transform: translateY(-2px); }
+
+        .pulse { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 2s infinite; }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand"><i class="fa-solid fa-house-medical"></i> MedAI Diagnose</div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="{% url 'doctor_patient' %}" class="nav-item"><i class="fa-solid fa-users"></i> Patient List</a>
+            <a href="{% url 'ai_inference' %}" class="nav-item"><i class="fa-solid fa-microscope"></i> All History</a>
+        </nav>
+        <a href="{% url 'home' %}" class="nav-item" style="color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2);"><i class="fa-solid fa-door-open"></i> Logout</a>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <h1>Clinical Overview</h1>
+            <p>Welcome, Dr. {{ doctor_name|default:"Physician" }} | <span style="color: var(--accent-blue); font-weight: 600;">Active Session</span></p>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Pending Reviews</div>
+                <div class="stat-value" style="color: var(--accent-blue);">{{ pending_count|default:"0" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">AI Analyses (Total)</div>
+                <div class="stat-value">{{ total_scans|default:"0" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Radiology Feed</div>
+                <div style="margin-top: 15px; font-weight: 600; color: #10b981;">
+                    <div class="pulse"></div> Live Sync Active
+                </div>
+            </div>
+        </section>
+
+        <section class="table-container">
+            <h3>Recent Radiology Intake & AI Findings</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Intake Date</th>
+                        <th>Patient Name</th>
+                        <th>AI Prediction</th>
+                        <th>Confidence</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in recent_scans %}
+                    <tr>
+                        <td style="color: var(--text-muted);">{{ scan.created_at|date:"M d, H:i" }}</td>
+                        <td style="font-weight: 600;">{{ scan.patient_name }}</td>
+                        <td><span class="badge-ai">{{ scan.prediction }}</span></td>
+                        <td>{{ scan.confidence }}%</td>
+                        <td><span class="status-tag status-new">Awaiting Review</span></td>
+                     <td><a href="{% url 'scan_report' scan.id %}" class="btn-review">Finalize Diagnosis</a></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 80px; color: #94a3b8;">
+                            No scans awaiting review.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+</body>
+</html> {% endcomment %}
+
+
+
+
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clinical Overview | MedAI Diagnose</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --bg-dark: #0f172a;
+            --bg-light: #f1f5f9;
+            --accent-blue: #2563eb;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-light); display: flex; min-height: 100vh; color: var(--text-main); }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width); background: var(--bg-dark); color: white;
+            position: fixed; height: 100vh; padding: 40px 24px;
+            display: flex; flex-direction: column; z-index: 100;
+        }
+
+        .brand { font-size: 22px; font-weight: 700; margin-bottom: 48px; display: flex; align-items: center; gap: 10px; }
+        .nav-menu { list-style: none; flex-grow: 1; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+            color: #94a3b8; text-decoration: none; border-radius: 12px;
+            margin-bottom: 6px; font-weight: 500; transition: all 0.3s ease;
+        }
+        .nav-item.active { background: var(--accent-blue); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
+        .nav-item:hover:not(.active) { color: white; background: rgba(255, 255, 255, 0.08); }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { margin-left: var(--sidebar-width); padding: 50px; width: calc(100% - var(--sidebar-width)); }
+        .header { margin-bottom: 40px; }
+        .header h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+
+        /* --- STATS CARDS --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 50px; }
+        .stat-card { background: white; padding: 30px; border-radius: 20px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; }
+        .stat-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+        .stat-value { font-size: 36px; font-weight: 800; margin-top: 12px; }
+
+        /* --- TABLE --- */
+        .table-container { background: white; border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; }
+        .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid #f1f5f9; }
+        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; }
+
+        /* --- BADGES --- */
+        .badge-ai { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .status-tag { padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; }
+        .status-new { background: #dcfce7; color: #166534; border: 1px solid #bcf0da; }
+
+        .btn-review { 
+            color: white; background: var(--accent-blue); padding: 10px 20px; 
+            border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 13px;
+            transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-review:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+
+        .pulse { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 2s infinite; margin-right: 5px; }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand"><i class="fa-solid fa-house-medical"></i> MedAI Diagnose</div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="{% url 'doctor_patient' %}" class="nav-item"><i class="fa-solid fa-users"></i> Patient List</a>
+            <a href="{% url 'ai_inference' %}" class="nav-item"><i class="fa-solid fa-microscope"></i> All History</a>
+        </nav>
+        <a href="{% url 'home' %}" class="nav-item" style="color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2);"><i class="fa-solid fa-door-open"></i> Logout</a>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <h1>Clinical Overview</h1>
+            <p>Welcome, Dr. {{ doctor_name|default:"Physician" }} | <span style="color: var(--accent-blue); font-weight: 600;">Active Session</span></p>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Pending Reviews</div>
+                <div class="stat-value" style="color: var(--accent-blue);">{{ pending_count|default:"0" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">AI Analyses (Total)</div>
+                <div class="stat-value">{{ total_scans|default:"0" }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Radiology Feed</div>
+                <div style="margin-top: 15px; font-weight: 600; color: #10b981; display: flex; align-items: center;">
+                    <div class="pulse"></div> Live Sync Active
+                </div>
+            </div>
+        </section>
+
+        <section class="table-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>Recent Radiology Intake & AI Findings</h3>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Intake Date</th>
+                        <th>Patient Name</th>
+                        <th>AI Prediction</th>
+                        <th>Confidence</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in recent_scans %}
+                    <tr>
+                        <td style="color: var(--text-muted);">{{ scan.created_at|date:"M d, H:i" }}</td>
+                        <td style="font-weight: 600;">{{ scan.patient_name }}</td>
+                        <td><span class="badge-ai">{{ scan.prediction }}</span></td>
+                        <td>
+                            <div style="font-weight: 600;">{{ scan.confidence }}%</div>
+                            <div style="height: 4px; width: 50px; background: #e2e8f0; border-radius: 2px; margin-top: 4px;">
+                                <div style="height: 100%; width: {{ scan.confidence }}%; background: var(--accent-blue); border-radius: 2px;"></div>
+                            </div>
+                        </td>
+                        <td><span class="status-tag status-new">Awaiting Review</span></td>
+                        <td style="text-align: right;">
+                            <a href="{% url 'scan_report' scan.id %}" class="btn-review">
+                                <i class="fa-solid fa-file-medical"></i> View Report
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 100px 0;">
+                            <i class="fa-solid fa-folder-open" style="font-size: 48px; color: #e2e8f0; margin-bottom: 15px; display: block;"></i>
+                            <p style="color: #94a3b8; font-size: 16px;">No scans awaiting your review at this time.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+</body>
+</html> {% endcomment %}

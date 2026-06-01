@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% comment %} <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -176,7 +176,7 @@
             <div class="error">{{ error }}</div>
         {% endif %} {% endcomment %}
 
-        <form method="post">
+        {% comment %} <form method="post">
             {% csrf_token %}
             {% if messages %}
                     {% for message in messages %}
@@ -199,7 +199,7 @@
                  <input type="text" name="specialization" placeholder="Choose specialization" required>
             </div> {% endcomment %}
 
-            <div class="input-group">
+            {% comment %} <div class="input-group">
                 <label>License Number</label>
                 <input type="int" name="license_number" placeholder="Enter your license number" required>
             </div> 
@@ -224,6 +224,101 @@
 
     </div>
 
+</div>
+
+</body>
+</html> {% endcomment %} 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Registration | MedAI Diagnose</title>
+    <style>
+        body { margin: 0; height: 100vh; font-family: "Segoe UI", Arial, sans-serif; background: linear-gradient(to right, #0f4c75, #3282b8); display: flex; align-items: center; justify-content: center; }
+        .wrapper { width: 900px; background: white; border-radius: 16px; overflow: hidden; display: flex; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
+        .info-panel { width: 45%; background: linear-gradient(to bottom, #083d77, #0f4c75); color: white; padding: 50px 40px; }
+        .info-panel h1 { font-size: 30px; margin-bottom: 15px; }
+        .info-panel p { font-size: 15px; line-height: 1.6; margin-bottom: 30px; }
+        .form-panel { width: 55%; padding: 45px 40px; overflow-y: auto; max-height: 90vh; }
+        .form-panel h2 { text-align: center; color: #083d77; margin-bottom: 8px; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { font-size: 14px; color: #333; display: block; }
+        .input-group input { width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
+        .register-btn { width: 100%; padding: 13px; background: linear-gradient(to right, #083d77, #0f4c75); border: none; border-radius: 25px; color: white; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .error-banner { background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; list-style: none; }
+        .footer-text { text-align: center; margin-top: 18px; font-size: 14px; }
+        .footer-text a { color: #083d77; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="info-panel">
+        <h1>🧠 MedAI Diagnose</h1>
+        <p>Join our AI-powered medical imaging diagnosis platform.</p>
+        <ul style="padding-left: 18px; font-size: 14px;">
+            <li>✔ Secure hospital-style workflow</li>
+            <li>✔ AI diagnosis with confidence scores</li>
+            <li>✔ Explainable heatmaps (Grad-CAM)</li>
+        </ul>
+    </div>
+
+    <div class="form-panel">
+        <div style="text-align: center; font-size: 42px;">🩺</div>
+        <h2>Doctor Registration</h2>
+        <p style="text-align: center; color: #666; font-size: 14px;">Create your professional account</p>
+
+        {% if messages %}
+            <ul class="error-banner">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+    <form method="post">
+           {% csrf_token %}
+    
+        {% if messages %}
+           {% for message in messages %}
+               <div style="background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px;">
+                  {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Choose a username" required>
+        </div>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="Enter your email" required>
+        </div>
+
+        <div class="input-group">
+            <label>License Number</label>
+            <input type="text" name="license_number" placeholder="Enter your license number" required>
+        </div> 
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Create a strong password" required>
+        </div>
+
+        <div class="input-group">
+            <label>Confirm Password</label>
+            <input type="password" name="confirmpassword" placeholder="Confirm password" required>
+        </div>
+
+        <button type="submit" class="register-btn">Create Account</button>
+</form>
+        <div class="footer-text">
+            Already registered? <a href="{% url 'login' %}">Login here</a>
+        </div>
+    </div>
 </div>
 
 </body>

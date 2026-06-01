@@ -1,4 +1,4 @@
-{% comment %} <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -76,8 +76,8 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="upload-card">
-                    {% comment %} <form action="{% url 'process_upload' %}" method="POST" enctype="multipart/form-data"> {% endcomment %}
-                    {% comment %} <form action="#" method="POST" enctype="multipart/form-data">
+                    <form action="{% url 'process_analysis' %}" method="POST" enctype="multipart/form-data"> 
+                     <form action="#" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         
                         <div class="mb-4">
@@ -138,9 +138,9 @@
         }
     </script>
 </body>
-</html>  {% endcomment %}
+</html>
 
-<!DOCTYPE html>
+{% comment %} <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -290,4 +290,4 @@
         }
     </script>
 </body>
-</html>
+</html> {% endcomment %}

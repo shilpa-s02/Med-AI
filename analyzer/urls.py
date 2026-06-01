@@ -15,4 +15,7 @@ urlpatterns = [
     path('radiology_upload/',views.Radiology_doctor,name='radiology_upload'),
     path('report/<int:scan_id>/', views.scan_report, name='scan_report'),
     path('ai-inference/', views.ai_inference_list, name='ai_inference'),
+    path('radiologist_dashboard/',views.radiologist_dashboard,name='radiologist_dashboard'),
+    path('login/',views.unified_login,name='login'),
+    path('process_analysis/', views.process_analysis, name='process_analysis'),
 ]
