@@ -1,0 +1,8 @@
+# Ignore all uploaded patient scans in the media directory
+media/scans/
+
+# Prevent any accidental image commits across the project workspace
+*.jpg
+*.jpeg
+*.png
+*.webp
