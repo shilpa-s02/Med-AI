@@ -1,11 +1,14 @@
 
-from django.urls import path
+from django.urls import path,include
 from . import views
 
+
 urlpatterns = [
+ 
     path('', views.home, name='home'),  # The landing page
     # path('upload/', views.upload_image, name='predict'), # The upload section [cite: 35]
     # path('index/',views.index,name='index'),
+ 
     path('doctor/',views.doctor_login,name='doctorlogin'),
     path('doctordashboard/',views.doctordashboard,name='doctordashboard'),
     path('doctorregister/',views.doctor_register,name='doctorregister'),
@@ -18,4 +21,10 @@ urlpatterns = [
     path('radiologist_dashboard/',views.radiologist_dashboard,name='radiologist_dashboard'),
     path('login/',views.unified_login,name='login'),
     path('process_analysis/', views.process_analysis, name='process_analysis'),
+    path('scan-report/<int:scan_id>/', views.finalize_diagnostic_review, name='scan_report'),
+    path('get-assigned-doctor/', views.get_assigned_doctor, name='get_assigned_doctor'),
 ]
+
+
+
+

@@ -1,405 +1,3 @@
-{% comment %} <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radiologist Workspace | MedAI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
-        
-        /* Sidebar */
-        .sidebar { width: 260px; background: #0f172a; height: 100vh; position: fixed; color: white; padding: 2rem 1rem; }
-        .nav-link { color: #94a3b8; padding: 0.8rem 1rem; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; }
-        .nav-link:hover, .nav-link.active { background: #1e293b; color: white; }
-        
-        /* Main Content */
-        .main-content { margin-left: 260px; padding: 3rem; }
-        
-        .upload-card {
-            background: white; border-radius: 20px; border: none;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 2rem;
-        }
-
-        .drop-zone {
-            border: 2px dashed #cbd5e1; border-radius: 15px;
-            padding: 3rem; text-align: center; cursor: pointer;
-            transition: 0.3s; background: #f8fafc;
-        }
-        .drop-zone:hover { border-color: #3b82f6; background: #eff6ff; }
-
-        .btn-analyze {
-            background: #2563eb; color: white; font-weight: 700;
-            padding: 1rem; border-radius: 12px; border: none; width: 100%;
-            transition: 0.3s; margin-top: 1.5rem;
-        }
-        .btn-analyze:hover { background: #1d4ed8; transform: translateY(-2px); }
-
-        .history-card { background: white; border-radius: 20px; padding: 1.5rem; border: none; }
-        .status-badge { font-size: 0.75rem; padding: 0.3rem 0.7rem; border-radius: 50px; }
-    </style>
-</head>
-<body>
-
-    <div class="sidebar">
-        <h4 class="fw-bold mb-4 px-3"><i class="fa-solid fa-microscope text-primary me-2"></i>MedAI</h4>
-        <nav class="nav flex-column">
-            <a href="{% url 'radiologist_dashboard' %}" class="nav-link active"><i class="fa-solid fa-upload me-2"></i> New Analysis</a>
-            <a href="{% url 'ai_inference' %}" class="nav-link"><i class="fa-solid fa-list-check me-2"></i> All Activities</a>
-            <hr class="text-muted">
-            <a href="{% url 'home' %}" class="nav-link text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
-        </nav>
-    </div>
-
-    <div class="main-content">
-        <div class="row g-4">
-            <div class="col-lg-5">
-                <div class="upload-card">
-                    <h4 class="fw-bold mb-1">Radiology Intake</h4>
-                    <p class="text-muted small mb-4">Upload patient scan for real-time AI processing.</p>
-
-                    <form action="#" method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Select Patient</label>
-                            <select name="patient_id" class="form-select border-0 bg-light p-3 rounded-3" required>
-                                <option value="" disabled selected>Search Patient Name...</option>
-                                {% for p in patients %}
-                                <option value="{{ p.id }}">{{ p.name }} (ID: {{ p.id }})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Modality</label>
-                            <div class="d-flex gap-2">
-                                <input type="radio" class="btn-check" name="modality" id="xray" value="X-Ray" checked>
-                                <label class="btn btn-outline-secondary flex-grow-1" for="xray">X-Ray</label>
-                                
-                                <input type="radio" class="btn-check" name="modality" id="mri" value="MRI">
-                                <label class="btn btn-outline-secondary flex-grow-1" for="mri">MRI</label>
-                                
-                                <input type="radio" class="btn-check" name="modality" id="ct" value="CT">
-                                <label class="btn btn-outline-secondary flex-grow-1" for="ct">CT Scan</label>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Scan Image</label>
-                            <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
-                                <i class="fa-solid fa-cloud-arrow-up fs-1 text-primary mb-2"></i>
-                                <p class="mb-0 small fw-bold">Click or Drag Image Here</p>
-                                <input type="file" name="image" id="fileInput" class="d-none" required onchange="updateFileName(this)">
-                                <span id="fileNameDisplay" class="text-primary small mt-2 d-block"></span>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-analyze">
-                            <i class="fa-solid fa-bolt me-2"></i> Run AI Analysis
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="col-lg-7">
-                <div class="history-card shadow-sm">
-                    <h5 class="fw-bold mb-4">My Recent Uploads</h5>
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="table-light">
-                                <tr class="small text-uppercase text-muted">
-                                    <th>Patient</th>
-                                    <th>Modality</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for scan in recent_uploads %}
-                                <tr>
-                                    <td><div class="fw-bold">{{ scan.patient.name }}</div><small class="text-muted">{{ scan.created_at|date:"M d" }}</small></td>
-                                    <td><span class="badge bg-light text-dark border">{{ scan.modality }}</span></td>
-                                    <td><span class="status-badge bg-success-subtle text-success">Analyzed</span></td>
-                                    <td><a href="{% url 'scan_report' scan.id %}" class="btn btn-sm btn-light border">View Report</a></td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="4" class="text-center py-5 text-muted">No recent activity.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function updateFileName(input) {
-            const display = document.getElementById('fileNameDisplay');
-            display.innerText = input.files[0] ? "Selected: " + input.files[0].name : "";
-        }
-    </script>
-</body>
-</html> {% endcomment %}
-
-
-
-
-
-{% comment %} <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radiologist Workspace | MedAI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --bg-dark: #0f172a;
-            --accent-blue: #2563eb;
-            --sidebar-width: 260px;
-        }
-
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; overflow-x: hidden; }
-        
-        /* --- SIDEBAR --- */
-        .sidebar { 
-            width: var(--sidebar-width); 
-            background: var(--bg-dark); 
-            height: 100vh; 
-            position: fixed; 
-            color: white; 
-            padding: 2rem 1rem; 
-            z-index: 1000;
-        }
-        .nav-link { 
-            color: #94a3b8; 
-            padding: 0.8rem 1rem; 
-            border-radius: 10px; 
-            margin-bottom: 5px; 
-            transition: 0.3s; 
-            display: flex;
-            align-items: center;
-        }
-        .nav-link:hover, .nav-link.active { background: #1e293b; color: white; }
-        .nav-link i { width: 20px; margin-right: 10px; }
-        
-        /* --- MAIN CONTENT --- */
-        .main-content { margin-left: var(--sidebar-width); padding: 3rem; min-height: 100vh; }
-        
-        .upload-card {
-            background: white; border-radius: 20px; border: none;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); padding: 2.5rem;
-        }
-
-        /* --- DROP ZONE --- */
-        .drop-zone {
-            border: 2px dashed #cbd5e1; border-radius: 15px;
-            padding: 3rem; text-align: center; cursor: pointer;
-            transition: 0.3s; background: #f8fafc; position: relative;
-        }
-        .drop-zone:hover { border-color: var(--accent-blue); background: #eff6ff; }
-        .drop-zone.dragover { border-color: var(--accent-blue); background: #dbeafe; }
-
-        .btn-analyze {
-            background: var(--accent-blue); color: white; font-weight: 700;
-            padding: 1.1rem; border-radius: 12px; border: none; width: 100%;
-            transition: 0.3s; margin-top: 1.5rem;
-        }
-        .btn-analyze:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); }
-        .btn-analyze:disabled { background: #94a3b8; transform: none; cursor: not-allowed; }
-
-        .history-card { background: white; border-radius: 20px; padding: 1.5rem; border: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .status-badge { font-size: 0.75rem; padding: 0.3rem 0.7rem; border-radius: 50px; font-weight: 600; }
-        
-        /* --- LOADER --- */
-        #loadingOverlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8);
-            z-index: 9999;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px);
-        }
-    </style>
-</head>
-<body>
-
-    <div id="loadingOverlay">
-        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
-        <h5 class="fw-bold">MedGemma AI Processing...</h5>
-        <p class="text-muted">Analyzing scan and generating preliminary report.</p>
-    </div>
-
-    <aside class="sidebar">
-        <h4 class="fw-bold mb-4 px-3"><i class="fa-solid fa-house-medical text-primary me-2"></i>MedAI</h4>
-        <nav class="nav flex-column">
-            <a href="{% url 'radiologist_dashboard' %}" class="nav-link active"><i class="fa-solid fa-plus-circle"></i> New Analysis</a>
-            <a href="{% url 'ai_inference' %}" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> All Activities</a>
-            <hr class="text-muted my-4">
-            <a href="{% url 'home' %}" class="nav-link text-danger"><i class="fa-solid fa-power-off"></i> Logout</a>
-        </nav>
-    </aside>
-
-    <main class="main-content">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <div class="row g-4">
-            <div class="col-lg-5">
-                <div class="upload-card">
-                    <h4 class="fw-bold mb-1">Radiology Intake</h4>
-                    <p class="text-muted small mb-4">Select a patient and upload the diagnostic scan.</p>
-
-                    <form action="{% url 'process_analysis' %}" method="POST" enctype="multipart/form-data" id="uploadForm">
-                        {% csrf_token %}
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Select Patient</label>
-                            <select name="patient_id" class="form-select border-0 bg-light p-3 rounded-3" required>
-                                <option value="" disabled selected>Search Patient Name...</option>
-                                {% for p in patients %}
-                                    <option value="{{ p.id }}">{{ p.name }} (Record ID: #PAT-{{ p.id }})</option>
-                                {% endfor %}
-                            </select>
-                            <small class="text-muted mt-1 d-block">Only patients registered by doctors appear here.</small>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Modality</label>
-                            <div class="d-flex gap-2">
-                                <input type="radio" class="btn-check" name="modality" id="xray" value="X-Ray" checked>
-                                <label class="btn btn-outline-secondary flex-grow-1 p-2" for="xray">X-Ray</label>
-                                
-                                <input type="radio" class="btn-check" name="modality" id="mri" value="MRI">
-                                <label class="btn btn-outline-secondary flex-grow-1 p-2" for="mri">MRI</label>
-                                
-                                <input type="radio" class="btn-check" name="modality" id="ct" value="CT">
-                                <label class="btn btn-outline-secondary flex-grow-1 p-2" for="ct">CT Scan</label>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Scan Image</label>
-                            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-                                <i class="fa-solid fa-file-medical fs-1 text-primary mb-2"></i>
-                                <p class="mb-0 small fw-bold" id="dropZoneText">Click or Drag Image Here</p>
-                                <input type="file" name="image" id="fileInput" class="d-none" accept="image/*" required onchange="handleFileSelect(this)">
-                                <span id="fileNameDisplay" class="text-primary small mt-2 d-block fw-bold"></span>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-analyze" id="submitBtn">
-                            <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Run AI Analysis
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="col-lg-7">
-                <div class="history-card">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold mb-0">My Recent Uploads</h5>
-                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3">Live Feed</span>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="table-light">
-                                <tr class="small text-uppercase text-muted" style="font-size: 11px; letter-spacing: 0.5px;">
-                                    <th>Patient</th>
-                                    <th>Modality</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for scan in recent_uploads %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold">{{ scan.patient_name }}</div>
-                                        <small class="text-muted">{{ scan.created_at|date:"H:i A, M d" }}</small>
-                                    </td>
-                                    <td><span class="badge bg-light text-dark border">{{ scan.modality }}</span></td>
-                                    <td><span class="status-badge bg-success-subtle text-success">Sent to Doctor</span></td>
-                                    <td class="text-end">
-                                        <a href="{% url 'scan_report' scan.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View Result</a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center py-5">
-                                        <img src="https://cdn-icons-png.flaticon.com/512/5089/5089733.png" width="60" class="opacity-25 mb-3" alt="Empty">
-                                        <p class="text-muted mb-0">No scans uploaded today.</p>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const fileNameDisplay = document.getElementById('fileNameDisplay');
-        const uploadForm = document.getElementById('uploadForm');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-
-        // Update file name display
-        function handleFileSelect(input) {
-            if (input.files && input.files[0]) {
-                fileNameDisplay.innerText = "✓ " + input.files[0].name;
-                document.getElementById('dropZoneText').innerText = "Image Selected";
-            }
-        }
-
-        // Drag and Drop functionality
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            fileInput.files = e.dataTransfer.files;
-            handleFileSelect(fileInput);
-        });
-
-        // Show loading overlay on submit
-        uploadForm.addEventListener('submit', function() {
-            loadingOverlay.style.display = 'flex';
-        });
-    </script>
-</body>
-</html>  {% endcomment %}
-
-
-
 
 {% comment %} <!DOCTYPE html>
 <html lang="en">
@@ -441,396 +39,14 @@
         }
         .upload-zone:hover { border-color: var(--medical-blue); background: #f0f9ff; }
 
-        /* Status Indicator */
+        /* Status Indicator Pill */
         .status-pill {
-            padding: 6px 12px; border-radius: 50px; font-size: 11px;
+            padding: 6px 14px; border-radius: 50px; font-size: 11px;
             font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            display: inline-block;
         }
-        .status-sent { background: #dcfce7; color: #166534; }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    </style>
-</head>
-<body>
-
-    <aside class="sidebar">
-        <h3 class="fw-bold mb-5"><i class="fa-solid fa-microscope me-2 text-info"></i>MedAI</h3>
-        <nav class="nav flex-column gap-2">
-            <a href="#" class="nav-link text-white bg-primary rounded-4 p-3"><i class="fa-solid fa-upload me-2"></i> New Scan</a>
-            <a href="#" class="nav-link text-secondary p-3"><i class="fa-solid fa-list me-2"></i> Patient Logs</a>
-            <a href="#" class="nav-link text-secondary p-3"><i class="fa-solid fa-gear me-2"></i> Settings</a>
-            <a href="{% url 'home' %}" class="nav-link text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
-        </nav>
-    </aside>
-
-    <div class="main-wrapper">
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <div>
-                <h2 class="fw-bold text-dark">Radiology Intake</h2>
-                <p class="text-muted">Welcome back, Radiologist Session #{{ user.id }}</p>
-            </div>
-            <div class="d-flex gap-3">
-                <div class="bg-white p-3 rounded-4 shadow-sm text-center" style="min-width: 120px;">
-                    <div class="small text-muted">Today's Scans</div>
-                    <div class="h4 fw-bold mb-0 text-primary">{{ recent_uploads|length }}</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-lg-5">
-                <div class="action-card p-4">
-                    <h5 class="fw-bold mb-4">Patient Submission</h5>
-                    <form action="{% url 'process_analysis' %}" method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="mb-4">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Patient Assignment</label>
-                            <select name="patient_id" class="form-select form-select-lg border-0 bg-light rounded-4" required>
-                                <option value="" disabled selected>Select from active patients...</option>
-                                {% for p in patients %}
-                                <option value="{{ p.id }}">{{ p.name }} (ID: #{{ p.id }})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Diagnostic Modality</label>
-                            <div class="d-flex gap-2">
-                                <input type="radio" class="btn-check" name="modality" id="xray" value="X-Ray" checked>
-                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="xray">X-Ray</label>
-                                <input type="radio" class="btn-check" name="modality" id="ct" value="CT">
-                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="ct">CT</label>
-                                <input type="radio" class="btn-check" name="modality" id="mri" value="MRI">
-                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="mri">MRI</label>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label small fw-bold text-muted text-uppercase">DICOM/Image Upload</label>
-                            <div class="upload-zone" id="dropzone" onclick="document.getElementById('imageInput').click()">
-                                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2"></i>
-                                <p class="small text-muted mb-0" id="uploadText">Drag scan file here or click</p>
-                                <input type="file" name="image" id="imageInput" class="d-none" required onchange="updateFileName(this)">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-sm">
-                            <i class="fa-solid fa-bolt-lightning me-2"></i> Initiate AI Analysis
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="col-lg-7">
-                <div class="action-card p-4 h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold mb-0">Live Analysis Feed</h5>
-                        <button class="btn btn-sm btn-light rounded-pill"><i class="fa-solid fa-rotate"></i> Refresh</button>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="text-muted small text-uppercase">
-                                <tr>
-                                    <th>Patient Details</th>
-                                    <th>Type</th>
-                                    <th>AI Prediction</th>
-                                    <th class="text-end">Report</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for scan in recent_uploads %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold">{{ scan.patient_name }}</div>
-                                        <div class="text-muted small">{{ scan.created_at|date:"f A" }}</div>
-                                    </td>
-                                    <td><span class="badge bg-light text-dark border-0 rounded-pill">{{ scan.modality }}</span></td>
-                                    <td>
-                                        <span class="status-pill {% if scan.prediction == 'Normal' %}status-sent{% else %}bg-warning-subtle text-warning{% endif %}">
-                                            {{ scan.prediction }}
-                                        </span>
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{% url 'scan_report' scan.id %}" class="btn btn-sm btn-dark rounded-3 px-3">
-                                            View <i class="fa-solid fa-chevron-right ms-1" style="font-size: 10px;"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted italic">
-                                        <i class="fa-solid fa-box-open d-block fs-1 mb-2 opacity-25"></i>
-                                        No scans processed in the current session.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function updateFileName(input) {
-            if (input.files && input.files[0]) {
-                document.getElementById('uploadText').innerHTML = `<span class='text-primary fw-bold'><i class='fa-solid fa-file-check'></i> ${input.files[0].name}</span>`;
-            }
-        }
-    </script>
-</body>
-</html> {% endcomment %}
-
-
-
-
-{% comment %} <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Radiology Command Center | MedAI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --medical-blue: #0ea5e9;
-            --dark-slate: #0f172a;
-            --glass-bg: rgba(255, 255, 255, 0.9);
-        }
-
-        body { background: #f8fafc; font-family: 'Inter', sans-serif; }
-        
-        /* Sidebar Styling */
-        .sidebar { 
-            width: 260px; background: var(--dark-slate); height: 100vh; 
-            position: fixed; padding: 2rem 1.5rem; color: white;
-        }
-
-        /* Main Area */
-        .main-wrapper { margin-left: 260px; padding: 2rem; }
-
-        /* Modern Action Cards */
-        .action-card {
-            background: white; border-radius: 24px; border: none;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease;
-        }
-
-        /* Fresh Upload Zone */
-        .upload-zone {
-            border: 2px dashed #cbd5e1; border-radius: 20px;
-            padding: 40px; text-align: center; background: #f1f5f9;
-            transition: all 0.3s; cursor: pointer;
-        }
-        .upload-zone:hover { border-color: var(--medical-blue); background: #f0f9ff; }
-
-        /* Status Indicator */
-        .status-pill {
-            padding: 6px 12px; border-radius: 50px; font-size: 11px;
-            font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .status-sent { background: #dcfce7; color: #166534; }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    </style>
-</head>
-<body>
-
-    <aside class="sidebar">
-        <h3 class="fw-bold mb-5"><i class="fa-solid fa-microscope me-2 text-info"></i>MedAI</h3>
-        <nav class="nav flex-column gap-2">
-            <a href="#" class="nav-link text-white bg-primary rounded-4 p-3"><i class="fa-solid fa-upload me-2"></i> New Scan</a>
-            <a href="#" class="nav-link text-secondary p-3"><i class="fa-solid fa-list me-2"></i> Patient Logs</a>
-            <a href="#" class="nav-link text-secondary p-3"><i class="fa-solid fa-gear me-2"></i> Settings</a>
-            <a href="{% url 'home' %}" class="nav-link text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
-        </nav>
-    </aside>
-
-    <div class="main-wrapper">
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <div>
-                <h2 class="fw-bold text-dark">Radiology Intake</h2>
-                <p class="text-muted">Welcome back, Radiologist Session #{{ user.id }}</p>
-            </div>
-            <div class="d-flex gap-3">
-                <div class="bg-white p-3 rounded-4 shadow-sm text-center" style="min-width: 120px;">
-                    <div class="small text-muted">Today's Scans</div>
-                    <div class="h4 fw-bold mb-0 text-primary">{{ recent_uploads|length }}</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-lg-5">
-                <div class="action-card p-4">
-                    <h5 class="fw-bold mb-4">Patient Submission</h5>
-                    <form action="{% url 'process_analysis' %}" method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        <div class="mb-4">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Patient Assignment</label>
-                            <select name="patient_id" class="form-select form-select-lg border-0 bg-light rounded-4" required>
-                                <option value="" disabled selected>Select from active patients...</option>
-                                {% for p in patients %}
-                                <option value="{{ p.id }}">{{ p.name }} (ID: #{{ p.id }})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Assign to Physician / Doctor</label>
-                            <select name="doctor_id" class="form-select form-select-lg border-0 bg-light rounded-4" required>
-                                <option value="" disabled selected>Select treating doctor...</option>
-                                {% for doctor in doctors %}
-                                <option value="{{ doctor.id }}">Dr. {{ doctor.username }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Diagnostic Modality</label>
-                            <div class="d-flex gap-2">
-                                <input type="radio" class="btn-check" name="modality" id="xray" value="X-Ray" checked>
-                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="xray">X-Ray</label>
-                                <input type="radio" class="btn-check" name="modality" id="ct" value="CT">
-                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="ct">CT</label>
-                                <input type="radio" class="btn-check" name="modality" id="mri" value="MRI">
-                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="mri">MRI</label>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label small fw-bold text-muted text-uppercase">DICOM/Image Upload</label>
-                            <div class="upload-zone" id="dropzone" onclick="document.getElementById('imageInput').click()">
-                                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2"></i>
-                                <p class="small text-muted mb-0" id="uploadText">Drag scan file here or click</p>
-                                <input type="file" name="image" id="imageInput" class="d-none" required onchange="updateFileName(this)">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-sm">
-                            <i class="fa-solid fa-bolt-lightning me-2"></i> Initiate AI Analysis
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="col-lg-7">
-                <div class="action-card p-4 h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold mb-0">Live Analysis Feed</h5>
-                        <button class="btn btn-sm btn-light rounded-pill"><i class="fa-solid fa-rotate"></i> Refresh</button>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="text-muted small text-uppercase">
-                                <tr>
-                                    <th>Patient Details</th>
-                                    <th>Type</th>
-                                    <th>AI Prediction</th>
-                                    <th class="text-end">Report</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for scan in recent_uploads %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold">{{ scan.patient_name }}</div>
-                                        <div class="text-muted small">{{ scan.created_at|date:"f A" }}</div>
-                                    </td>
-                                    <td><span class="badge bg-light text-dark border-0 rounded-pill">{{ scan.modality }}</span></td>
-                                    <td>
-                                        <span class="status-pill {% if scan.prediction == 'Normal' %}status-sent{% else %}bg-warning-subtle text-warning{% endif %}">
-                                            {{ scan.prediction }}
-                                        </span>
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{% url 'scan_report' scan.id %}" class="btn btn-sm btn-dark rounded-3 px-3">
-                                            View <i class="fa-solid fa-chevron-right ms-1" style="font-size: 10px;"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted italic">
-                                        <i class="fa-solid fa-box-open d-block fs-1 mb-2 opacity-25"></i>
-                                        No scans processed in the current session.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function updateFileName(input) {
-            if (input.files && input.files[0]) {
-                document.getElementById('uploadText').innerHTML = `<span class='text-primary fw-bold'><i class='fa-solid fa-file-check'></i> ${input.files[0].name}</span>`;
-            }
-        }
-    </script>
-</body>
-</html> {% endcomment %}
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Radiology Command Center | MedAI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --medical-blue: #0ea5e9;
-            --dark-slate: #0f172a;
-            --glass-bg: rgba(255, 255, 255, 0.9);
-        }
-
-        body { background: #f8fafc; font-family: 'Inter', sans-serif; }
-        
-        /* Sidebar Styling */
-        .sidebar { 
-            width: 260px; background: var(--dark-slate); height: 100vh; 
-            position: fixed; padding: 2rem 1.5rem; color: white;
-        }
-
-        /* Main Area */
-        .main-wrapper { margin-left: 260px; padding: 2rem; }
-
-        /* Modern Action Cards */
-        .action-card {
-            background: white; border-radius: 24px; border: none;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease;
-        }
-
-        /* Fresh Upload Zone */
-        .upload-zone {
-            border: 2px dashed #cbd5e1; border-radius: 20px;
-            padding: 40px; text-align: center; background: #f1f5f9;
-            transition: all 0.3s; cursor: pointer;
-        }
-        .upload-zone:hover { border-color: var(--medical-blue); background: #f0f9ff; }
-
-        /* Status Indicator */
-        .status-pill {
-            padding: 6px 12px; border-radius: 50px; font-size: 11px;
-            font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .status-sent { background: #dcfce7; color: #166534; }
+        .status-sent { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .status-routing { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
@@ -860,10 +76,6 @@
                     <div class="small text-muted">Today's Scans</div>
                     <div class="h4 fw-bold mb-0 text-primary">{{ todays_count }}</div>
                 </div>
-                {% comment %} <div class="bg-white p-3 rounded-4 shadow-sm text-center" style="min-width: 120px;">
-                    <div class="small text-muted">Today's Scans</div>
-                    <div class="h4 fw-bold mb-0 text-primary">{{ recent_uploads|length }}</div>
-                </div> {% endcomment %}
             </div>
         </div>
 
@@ -932,41 +144,51 @@
                 <div class="action-card p-4 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="fw-bold mb-0">Live Analysis Feed</h5>
-                        <button class="btn btn-sm btn-light rounded-pill"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                        <button class="btn btn-sm btn-light rounded-pill" onclick="window.location.reload();">
+                            <i class="fa-solid fa-rotate me-1"></i> Refresh
+                        </button>
                     </div>
 
                     <div class="table-responsive">
                         <table class="table align-middle">
-                            <thead class="text-muted small text-uppercase">
+                            <thead class="text-muted small text-uppercase" style="border-bottom: 2px solid #f1f5f9;">
                                 <tr>
-                                    <th>Patient Details</th>
-                                    <th>Type</th>
-                                    <th>AI Prediction</th>
-                                    <th class="text-end">Report</th>
+                                    <th style="padding-bottom: 12px;">Patient Details</th>
+                                    <th style="padding-bottom: 12px;">Type</th>
+                                    {% comment %} <th style="padding-bottom: 12px;">AI Prediction</th> {% endcomment %}
+                                    {% comment %} <th style="padding-bottom: 12px;">Routing Notification</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for scan in recent_uploads %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold">{{ scan.patient_name }}</div>
-                                        <div class="text-muted small">{{ scan.created_at|date:"f A" }}</div>
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td class="py-3">
+                                        <div class="fw-bold text-dark">{{ scan.patient_name }}</div>
+                                        <div class="text-muted small"><i class="fa-regular fa-clock me-1"></i>{{ scan.created_at|date:"g:i A" }}</div>
                                     </td>
-                                    <td><span class="badge bg-light text-dark border-0 rounded-pill">{{ scan.modality }}</span></td>
-                                    <td>
-                                        <span class="status-pill {% if scan.prediction == 'Normal' %}status-sent{% else %}bg-warning-subtle text-warning{% endif %}">
+                                    <td class="py-3">
+                                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2">{{ scan.modality }}</span>
+                                    </td>
+                                    {% comment %} <td class="py-3">
+                                        <div class="text-secondary small text-truncate" style="max-width: 200px;" title="{{ scan.prediction }}">
                                             {{ scan.prediction }}
-                                        </span>
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{% url 'scan_report' scan.id %}" class="btn btn-sm btn-dark rounded-3 px-3">
-                                            View <i class="fa-solid fa-chevron-right ms-1" style="font-size: 10px;"></i>
-                                        </a>
+                                        </div>
+                                    </td> {% endcomment %}
+                                    {% comment %} <td class="py-3">
+                                        {% if scan.assigned_doctor %}
+                                            <span class="status-pill status-sent">
+                                                <i class="fa-solid fa-circle-check me-1"></i> Sent to Dr. {{ scan.assigned_doctor.last_name|default:scan.assigned_doctor.username }}
+                                            </span>
+                                        {% else %}
+                                            <span class="status-pill status-routing">
+                                                <i class="fa-solid fa-paper-plane me-1"></i> Routed to Hub
+                                            </span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted italic">
+                                    <td colspan="4" class="text-center py-5 text-muted">
                                         <i class="fa-solid fa-box-open d-block fs-1 mb-2 opacity-25"></i>
                                         No scans processed in the current session.
                                     </td>
@@ -983,9 +205,586 @@
     <script>
         function updateFileName(input) {
             if (input.files && input.files[0]) {
-                document.getElementById('uploadText').innerHTML = `<span class='text-primary fw-bold'><i class='fa-solid fa-file-check'></i> ${input.files[0].name}</span>`;
+                document.getElementById('uploadText').innerHTML = `<span class='text-primary fw-bold'><i class='fa-solid fa-file-shield me-1'></i> ${input.files[0].name}</span>`;
             }
         }
+    </script>
+</body>
+</html> {% endcomment %} 
+
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Radiology Command Center | MedAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --medical-blue: #0ea5e9;
+            --dark-slate: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        body { background: #f8fafc; font-family: 'Inter', sans-serif; }
+        
+        /* Sidebar Styling */
+        .sidebar { 
+            width: 260px; background: var(--dark-slate); height: 100vh; 
+            position: fixed; padding: 2rem 1.5rem; color: white;
+        }
+
+        /* Main Area */
+        .main-wrapper { margin-left: 260px; padding: 2rem; }
+
+        /* Modern Action Cards */
+        .action-card {
+            background: white; border-radius: 24px; border: none;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        /* Fresh Upload Zone */
+        .upload-zone {
+            border: 2px dashed #cbd5e1; border-radius: 20px;
+            padding: 40px; text-align: center; background: #f1f5f9;
+            transition: all 0.3s; cursor: pointer;
+        }
+        .upload-zone:hover { border-color: var(--medical-blue); background: #f0f9ff; }
+
+        /* Status Indicator Pill */
+        .status-pill {
+            padding: 6px 14px; border-radius: 50px; font-size: 11px;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            display: inline-block;
+        }
+        .status-sent { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .status-routing { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+        /* 🚀 FIXED: ANIMATED AUTO-DISMISS FOR STACKING DJANGO MESSAGES */
+        .django-messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+        .django-messages .alert {
+            font-weight: 500;
+            border-radius: 12px;
+            animation: slideInAndFade 4.5s forwards ease-in-out;
+        }
+        @keyframes slideInAndFade {
+            0% { opacity: 0; transform: translateY(-10px); }
+            8% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); height: auto; margin-bottom: 10px; padding: 1rem; }
+            100% { opacity: 0; transform: translateY(-15px); height: 0; padding: 0; margin-bottom: 0; display: none; overflow: hidden; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h3 class="fw-bold mb-5"><i class="fa-solid fa-microscope me-2 text-info"></i>MedAI</h3>
+        <nav class="nav flex-column gap-2">
+            <a href="#" class="nav-link text-white bg-primary rounded-4 p-3"><i class="fa-solid fa-upload me-2"></i> New Scan</a>
+            <a href="#" class="nav-link text-secondary p-3"><i class="fa-solid fa-list me-2"></i> Patient Logs</a>
+            <a href="#" class="nav-link text-secondary p-3"><i class="fa-solid fa-gear me-2"></i> Settings</a>
+            <a href="{% url 'home' %}" class="nav-link text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <div class="main-wrapper">
+        {% if messages %}
+        <ul class="django-messages">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}success{% endif %} d-flex align-items-center gap-2 shadow-sm">
+                {% if message.tags == 'error' or message.tags == 'warning' %}
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                {% else %}
+                    <i class="fa-solid fa-circle-check"></i>
+                {% endif %}
+                <div><strong>{% if message.tags == 'error' %}Error!{% else %}Success!{% endif %}</strong> {{ message }}</div>
+            </div>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="fw-bold text-dark">Radiology Intake</h2>
+                <p class="text-muted">Welcome back, Radiologist Session #{{ user.id }}</p>
+            </div>
+            <div class="d-flex gap-3">
+                <div class="bg-white p-3 rounded-4 shadow-sm text-center" style="min-width: 120px;">
+                    <div class="small text-muted">Today's Scans</div>
+                    <div class="h4 fw-bold mb-0 text-primary">{{ todays_count }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="action-card p-4">
+                    <h5 class="fw-bold mb-4">Patient Submission</h5>
+                    <form action="{% url 'process_analysis' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Patient Assignment</label>
+                            <select name="patient_id" id="patient-select" class="form-select form-select-lg border-0 bg-light rounded-4" required>
+                                <option value="" disabled selected>Select from active patients...</option>
+                                {% for p in patients %}
+                                <option value="{{ p.id }}">{{ p.name }} (ID: #{{ p.id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Assign to Physician / Doctor</label>
+                            <select name="doctor_id" id="doctor-select" class="form-select form-select-lg border-0 bg-light rounded-4" required>
+                                <option value="" disabled selected>Select treating doctor...</option>
+                                {% for doctor in doctors %}
+                                <option value="{{ doctor.id }}">
+                                    {% if doctor.get_full_name %}
+                                        {% if "Dr." in doctor.get_full_name or "dr." in doctor.get_full_name.lower %}
+                                            {{ doctor.get_full_name }}
+                                        {% else %}
+                                            Dr. {{ doctor.get_full_name }}
+                                        {% endif %}
+                                    {% else %}
+                                        {% if "Dr." in doctor.username or "dr." in doctor.username.lower %}
+                                            {{ doctor.username }}
+                                        {% else %}
+                                            Dr. {{ doctor.username }}
+                                        {% endif %}
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Diagnostic Modality</label>
+                            <div class="d-flex gap-2">
+                                <input type="radio" class="btn-check" name="modality" id="xray" value="X-Ray" checked>
+                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="xray">X-Ray</label>
+                                <input type="radio" class="btn-check" name="modality" id="ct" value="CT">
+                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="ct">CT</label>
+                                <input type="radio" class="btn-check" name="modality" id="mri" value="MRI">
+                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="mri">MRI</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">DICOM/Image Upload</label>
+                            <div class="upload-zone" id="dropzone" onclick="document.getElementById('imageInput').click()">
+                                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2"></i>
+                                <p class="small text-muted mb-0" id="uploadText">Drag scan file here or click</p>
+                                <input type="file" name="image" id="imageInput" class="d-none" required onchange="updateFileName(this)">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-sm">
+                            <i class="fa-solid fa-bolt-lightning me-2"></i> Initiate AI Analysis
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="action-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">Live Analysis Feed</h5>
+                        <button class="btn btn-sm btn-light rounded-pill" onclick="window.location.reload();">
+                            <i class="fa-solid fa-rotate me-1"></i> Refresh
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead class="text-muted small text-uppercase" style="border-bottom: 2px solid #f1f5f9;">
+                                <tr>
+                                    <th style="padding-bottom: 12px;">Patient Details</th>
+                                    <th style="padding-bottom: 12px;">Type</th>
+                                    <th style="padding-bottom: 12px;">Routing Notification</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for scan in recent_uploads %}
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td class="py-3">
+                                        <div class="fw-bold text-dark">{{ scan.patient_name }}</div>
+                                        <div class="text-muted small"><i class="fa-regular fa-clock me-1"></i>{{ scan.created_at|date:"g:i A" }}</div>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2">{{ scan.modality }}</span>
+                                    </td>
+                                    <td class="py-3">
+                                        {% if scan.assigned_doctor %}
+                                            <span class="status-pill status-sent">
+                                                <i class="fa-solid fa-circle-check me-1"></i> Sent to Dr. {{ scan.assigned_doctor.last_name|default:scan.assigned_doctor.username }}
+                                            </span>
+                                        {% else %}
+                                            <span class="status-pill status-routing">
+                                                <i class="fa-solid fa-paper-plane me-1"></i> Routed to Hub
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-box-open d-block fs-1 mb-2 opacity-25"></i>
+                                        No scans processed in the current session.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateFileName(input) {
+            if (input.files && input.files[0]) {
+                document.getElementById('uploadText').innerHTML = `<span class='text-primary fw-bold'><i class='fa-solid fa-file-shield me-1'></i> ${input.files[0].name}</span>`;
+            }
+        }
+
+        // 🚀 LIVE LOOKUP DETECTOR & ASSIGNED DOCTOR AUTO-SELECT FORWARDER
+        document.getElementById('patient-select').addEventListener('change', function() {
+            const patientId = this.value;
+            const doctorDropdown = document.getElementById('doctor-select');
+
+            console.log("👉 JavaScript caught drop change. Selected Patient ID Primary Key:", patientId);
+
+            if (!patientId) {
+                doctorDropdown.value = "";
+                return;
+            }
+
+            // Fire lookup query back to views.py API
+            fetch(`/get-assigned-doctor/?patient_id=${patientId}`)
+                .then(response => {
+                    console.log("📡 Network status code response returned:", response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("📦 Raw JSON payload returned from your backend view:", data);
+                    
+                    if (data.status === 'success' && data.doctor_id) {
+                        // Cast key strictly to a clean text string layout to map matching option items
+                        const targetDoctorIdString = String(data.doctor_id);
+                        
+                        console.log("🎯 Match found! Setting doctor dropdown select target selection value to ID:", targetDoctorIdString);
+                        
+                        // Set value field state directly
+                        doctorDropdown.value = targetDoctorIdString;
+                    } else {
+                        console.warn("⚠️ Match target configuration rules returned empty state or warning status:", data.message);
+                        doctorDropdown.value = "";
+                    }
+                })
+                .catch(error => {
+                    console.error('🚨 Fatal runtime exception error within backend asynchronous fetch loops:', error);
+                });
+        });
+    </script>
+</body>
+</html> {% endcomment %}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Radiology Command Center | MedAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --medical-blue: #0ea5e9;
+            --dark-slate: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        body { background: #f8fafc; font-family: 'Inter', sans-serif; }
+        
+        /* Sidebar Styling */
+        .sidebar { 
+            width: 260px; background: var(--dark-slate); height: 100vh; 
+            position: fixed; padding: 2rem 1.5rem; color: white;
+        }
+
+        /* Main Area */
+        .main-wrapper { margin-left: 260px; padding: 2rem; }
+
+        /* Modern Action Cards */
+        .action-card {
+            background: white; border-radius: 24px; border: none;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        /* Fresh Upload Zone */
+        .upload-zone {
+            border: 2px dashed #cbd5e1; border-radius: 20px;
+            padding: 40px; text-align: center; background: #f1f5f9;
+            transition: all 0.3s; cursor: pointer;
+        }
+        .upload-zone:hover { border-color: var(--medical-blue); background: #f0f9ff; }
+
+        /* Status Indicator Pill */
+        .status-pill {
+            padding: 6px 14px; border-radius: 50px; font-size: 11px;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            display: inline-block;
+        }
+        .status-sent { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .status-routing { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+        /* ANIMATED AUTO-DISMISS FOR STACKING DJANGO MESSAGES */
+        .django-messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+        .django-messages .alert {
+            font-weight: 500;
+            border-radius: 12px;
+            animation: slideInAndFade 4.5s forwards ease-in-out;
+        }
+        @keyframes slideInAndFade {
+            0% { opacity: 0; transform: translateY(-10px); }
+            8% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); height: auto; margin-bottom: 10px; padding: 1rem; }
+            100% { opacity: 0; transform: translateY(-15px); height: 0; padding: 0; margin-bottom: 0; display: none; overflow: hidden; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h3 class="fw-bold mb-5"><i class="fa-solid fa-microscope me-2 text-info"></i>MedAI</h3>
+        <nav class="nav flex-column gap-2">
+            <a href="#" class="nav-link text-white bg-primary rounded-4 p-3"><i class="fa-solid fa-upload me-2"></i> New Scan</a>
+            <a href="#" class="nav-link text-secondary p-3"><i class="fa-solid fa-list me-2"></i> Patient Logs</a>
+            <a href="#" class="nav-link text-secondary p-3"><i class="fa-solid fa-gear me-2"></i> Settings</a>
+            <a href="{% url 'home' %}" class="nav-link text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <div class="main-wrapper">
+        {% if messages %}
+        <ul class="django-messages">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}success{% endif %} d-flex align-items-center gap-2 shadow-sm">
+                {% if message.tags == 'error' or message.tags == 'warning' %}
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                {% else %}
+                    <i class="fa-solid fa-circle-check"></i>
+                {% endif %}
+                <div><strong>{% if message.tags == 'error' %}Error!{% else %}Success!{% endif %}</strong> {{ message }}</div>
+            </div>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="fw-bold text-dark">Radiology Intake</h2>
+                <p class="text-muted">Welcome back, Radiologist Session #{{ user.id }}</p>
+            </div>
+            <div class="d-flex gap-3">
+                <div class="bg-white p-3 rounded-4 shadow-sm text-center" style="min-width: 120px;">
+                    <div class="small text-muted">Today's Scans</div>
+                    <div class="h4 fw-bold mb-0 text-primary">{{ todays_count }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="action-card p-4">
+                    <h5 class="fw-bold mb-4">Patient Submission</h5>
+                    <form action="{% url 'process_analysis' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Patient Assignment</label>
+                            <select name="patient_id" id="patient-select" class="form-select form-select-lg border-0 bg-light rounded-4" required>
+                                <option value="" disabled selected>Select from active patients...</option>
+                                {% for p in patients %}
+                                <option value="{{ p.id }}">{{ p.name }} (ID: #{{ p.id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Assign to Physician / Doctor</label>
+                            <select name="doctor_id" id="doctor-select" class="form-select form-select-lg border-0 bg-light rounded-4" required>
+                                <option value="" disabled selected>Select treating doctor...</option>
+                                {% for doctor in doctors %}
+                                <option value="{{ doctor.id }}">
+                                    {% if doctor.get_full_name %}
+                                        {% if "Dr." in doctor.get_full_name or "dr." in doctor.get_full_name.lower %}
+                                            {{ doctor.get_full_name }}
+                                        {% else %}
+                                            Dr. {{ doctor.get_full_name }}
+                                        {% endif %}
+                                    {% else %}
+                                        {% if "Dr." in doctor.username or "dr." in doctor.username.lower %}
+                                            {{ doctor.username }}
+                                        {% else %}
+                                            Dr. {{ doctor.username }}
+                                        {% endif %}
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Diagnostic Modality</label>
+                            <div class="d-flex gap-2">
+                                <input type="radio" class="btn-check" name="modality" id="xray" value="X-Ray" checked>
+                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="xray">X-Ray</label>
+                                <input type="radio" class="btn-check" name="modality" id="ct" value="CT">
+                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="ct">CT</label>
+                                <input type="radio" class="btn-check" name="modality" id="mri" value="MRI">
+                                <label class="btn btn-outline-primary flex-grow-1 rounded-3 py-2" for="mri">MRI</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">DICOM/Image Upload</label>
+                            <div class="upload-zone" id="dropzone" onclick="document.getElementById('imageInput').click()">
+                                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2"></i>
+                                <p class="small text-muted mb-0" id="uploadText">Drag scan file here or click</p>
+                                <input type="file" name="image" id="imageInput" class="d-none" required onchange="updateFileName(this)">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-sm">
+                            <i class="fa-solid fa-bolt-lightning me-2"></i> Initiate AI Analysis
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="action-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">Live Analysis Feed</h5>
+                        <button class="btn btn-sm btn-light rounded-pill" onclick="window.location.reload();">
+                            <i class="fa-solid fa-rotate me-1"></i> Refresh
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead class="text-muted small text-uppercase" style="border-bottom: 2px solid #f1f5f9;">
+                                <tr>
+                                    <th style="padding-bottom: 12px;">Patient Details</th>
+                                    <th style="padding-bottom: 12px;">Type</th>
+                                    <th style="padding-bottom: 12px;">Routing Notification</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for scan in recent_uploads %}
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td class="py-3">
+                                        <div class="fw-bold text-dark">{{ scan.patient_name }}</div>
+                                        <div class="text-muted small"><i class="fa-regular fa-clock me-1"></i>{{ scan.created_at|date:"g:i A" }}</div>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2">{{ scan.modality }}</span>
+                                    </td>
+                                    <td class="py-3">
+                                        {% if scan.assigned_doctor %}
+                                            <span class="status-pill status-sent">
+                                                <i class="fa-solid fa-circle-check me-1"></i> Sent to Dr. {{ scan.assigned_doctor.last_name|default:scan.assigned_doctor.username }}
+                                            </span>
+                                        {% else %}
+                                            <span class="status-pill status-routing">
+                                                <i class="fa-solid fa-paper-plane me-1"></i> Routed to Hub
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-box-open d-block fs-1 mb-2 opacity-25"></i>
+                                        No scans processed in the current session.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateFileName(input) {
+            if (input.files && input.files[0]) {
+                document.getElementById('uploadText').innerHTML = `<span class='text-primary fw-bold'><i class='fa-solid fa-file-shield me-1'></i> ${input.files[0].name}</span>`;
+            }
+        }
+
+        // ASYNCHRONOUS PATIENT TO DOCTOR SYNC ROUTINE
+        document.getElementById('patient-select').addEventListener('change', function() {
+            const patientId = this.value;
+            const doctorDropdown = document.getElementById('doctor-select');
+
+            console.log("👉 Selected Patient Database Key:", patientId);
+
+            if (!patientId) {
+                doctorDropdown.value = "";
+                return;
+            }
+
+            // Execute fetch query back to views.py
+            fetch(`/get-assigned-doctor/?patient_id=${patientId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("📦 Response structure payload returned:", data);
+                    
+                    if (data.status === 'success') {
+                        // Explicit check: If doctor_id is null/None from database, reset the dropdown field safely
+                        if (data.doctor_id === null || data.doctor_id === undefined) {
+                            console.log("ℹ️ No doctor is linked to this patient. Resetting layout field option.");
+                            doctorDropdown.value = ""; 
+                        } else {
+                            // Cast the ID value to an explicit string to secure select value matching
+                            const targetIdString = String(data.doctor_id);
+                            console.log("🎯 Match verified. Switching doctor select value to:", targetIdString);
+                            doctorDropdown.value = targetIdString;
+                        }
+                    } else {
+                        console.warn("⚠️ Server endpoint returned error status logic:", data.message);
+                        doctorDropdown.value = "";
+                    }
+                })
+                .catch(error => {
+                    console.error('🚨 JavaScript lookup engine crash exception:', error);
+                });
+        });
     </script>
 </body>
 </html>

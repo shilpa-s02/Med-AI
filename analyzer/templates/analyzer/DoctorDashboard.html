@@ -1,6 +1,6 @@
 
 
-<!DOCTYPE html>
+{% comment %} <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -60,20 +60,95 @@
         .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 15px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid #f1f5f9; }
-        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; }
+        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
 
         /* --- BADGES --- */
-        .badge-ai { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .badge-ai { background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; display: inline-block; line-height: 1.4; }
         .status-tag { padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; }
         .status-new { background: #dcfce7; color: #166534; }
 
         .btn-review { 
             color: white; background: var(--accent-blue); padding: 10px 20px; 
             border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 14px;
-            transition: 0.2s; display: inline-block;
+            transition: 0.2s; display: inline-block; border: none; cursor: pointer;
         }
         .btn-review:hover { background: #1d4ed8; transform: translateY(-2px); }
 
+        /* --- CLINICAL WORKSPACE MODAL --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        
+        .modal-content { 
+            background: white; 
+            margin: 4% auto; 
+            padding: 30px; 
+            border-radius: 20px; 
+            width: 1150px; 
+            max-width: 95%; 
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border: none; 
+            animation: fadeIn 0.2s ease-out; 
+        }
+        
+        .modal-workspace { display: flex; gap: 24px; margin-top: 20px; }
+        
+        /* Left Pane: Medical Scan Viewer */
+        .scan-viewer { 
+            flex: 1.1; 
+            background: #000000; 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+            height: 520px; 
+            border: 1px solid #e2e8f0; 
+        }
+        .scan-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
+        .scan-fallback { color: #94a3b8; text-align: center; font-size: 14px; padding: 20px; display: block; }
+        
+        /* Right Pane */
+        .review-panel { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            height: 520px; 
+        }
+
+        .findings-box { 
+            background: #fef3c7; 
+            padding: 20px; 
+            border-radius: 12px; 
+            border: 1px solid #fef08a; 
+            height: 250px; 
+            overflow-y: auto; 
+        }
+        
+        /* 🚀 PRESERVE LINE BREAKS AND PARAGRAPHS */
+        .findings-text {
+            color: #92400e; 
+            font-size: 15px; 
+            line-height: 1.6; 
+            font-weight: 500;
+            white-space: pre-line; /* This CSS property converts database line endings (\n) into actual line breaks on the page */
+        }
+
+        .review-textarea { 
+            width: 100%; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            padding: 12px 14px; 
+            font-size: 14px; 
+            margin-top: 6px; 
+            height: 110px; 
+            resize: none; 
+            background: #f8fafc; 
+            font-family: inherit; 
+            line-height: 1.4;
+        }
+        .review-textarea:focus { outline: 2px solid var(--accent-blue); background: white; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         .pulse { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 2s infinite; }
         @keyframes pulse-green {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
@@ -124,7 +199,7 @@
                     <tr>
                         <th>Intake Date</th>
                         <th>Patient Name</th>
-                        <th>AI Prediction</th>
+                        <th style="width: 45%;">AI Prediction</th>
                         <th>Confidence</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -136,9 +211,14 @@
                         <td style="color: var(--text-muted);">{{ scan.created_at|date:"M d, H:i" }}</td>
                         <td style="font-weight: 600;">{{ scan.patient_name }}</td>
                         <td><span class="badge-ai">{{ scan.prediction }}</span></td>
-                        <td>{{ scan.confidence }}%</td>
+                        <td style="font-weight: 600;">{{ scan.confidence }}%</td>
                         <td><span class="status-tag status-new">Awaiting Review</span></td>
-                        <td><a href="{% url 'scan_report' scan.id %}" class="btn-review">Finalize Diagnosis</a></td>
+                        <td>
+                            <button type="button" class="btn-review" 
+                                onclick="openReviewModal('{{ scan.id }}', '{% if scan.image %}{{ scan.image.url }}{% endif %}')">
+                                Finalize Diagnosis
+                            </button>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -151,12 +231,91 @@
                 </tbody>
             </table>
         </section>
+
+        {% for scan in recent_scans %}
+        <div id="modal-{{ scan.id }}" class="modal">
+            <div class="modal-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+                    <div>
+                        <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Reviewing Case For:</span>
+                        <h2 style="font-weight: 800; font-size: 22px; color: var(--text-main); margin-top: 2px;">{{ scan.patient_name }}</h2>
+                    </div>
+                    <span style="cursor:pointer; font-size: 22px; color: var(--text-muted);" onclick="closeReviewModal('{{ scan.id }}')"><i class="fa-solid fa-xmark"></i></span>
+                </div>
+                
+                <div class="modal-workspace">
+                    
+                    <div class="scan-viewer">
+                        <img id="img-{{ scan.id }}" src="" alt="Radiology Scan Image for {{ scan.patient_name }}">
+                        <div id="fallback-{{ scan.id }}" class="scan-fallback">
+                            <i class="fa-solid fa-triangle-excursion" style="font-size: 30px; margin-bottom: 12px; display: block;"></i>
+                            No imaging scan file attached to this patient record.
+                        </div>
+                    </div>
+
+                    <div class="review-panel">
+                        
+                        <div class="findings-box">
+                            <strong style="color: #92400e; font-weight: 700; display: block; margin-bottom: 8px; font-size: 15px;">
+                                <i class="fa-solid fa-microscope me-1"></i> AI INITIAL FINDINGS:
+                            </strong>
+                            <div class="findings-text">{{ scan.prediction }}</div>
+                        </div>
+
+                        <form action="{% url 'scan_report' scan.id %}" method="POST" style="display: flex; flex-direction: column; flex-grow: 1; justify-content: flex-end;">
+                            {% csrf_token %}
+                            <div style="margin-bottom: 15px; margin-top: 10px;">
+                                <label style="font-weight: 700; font-size: 11px; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.3px;">Physician Notes & Final Diagnostic Impression</label>
+                                <textarea name="doctor_notes" class="review-textarea" placeholder="Type your formal diagnostic adjustments, clinical impressions, or confirm the computer-assisted AI findings here..."></textarea>
+                            </div>
+                            
+                            <div style="display: flex; gap: 12px;">
+                                <button type="submit" class="btn-review" style="flex: 2; padding: 12px; font-size: 14px;">
+                                    <i class="fa-solid fa-circle-check me-1"></i> Finalize & Save Report
+                                </button>
+                                <button type="button" class="btn-review" style="flex: 1; background: #e2e8f0; color: var(--text-main); padding: 12px; font-size: 14px;" onclick="closeReviewModal('{{ scan.id }}')">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </main>
 
+    <script>
+        function openReviewModal(id, imageUrl) {
+            var modal = document.getElementById('modal-' + id);
+            var imgElement = document.getElementById('img-' + id);
+            var fallbackElement = document.getElementById('fallback-' + id);
+
+            if (imageUrl && imageUrl.trim() !== '') {
+                imgElement.src = imageUrl;
+                imgElement.style.display = "block";
+                fallbackElement.style.display = "none";
+            } else {
+                imgElement.style.display = "none";
+                fallbackElement.style.display = "block";
+            }
+
+            modal.style.display = "block";
+        }
+
+        function closeReviewModal(id) {
+            document.getElementById('modal-' + id).style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
 </body>
-</html> 
-
-
+</html> {% endcomment %}
 
 
 {% comment %} <!DOCTYPE html>
@@ -182,9 +341,15 @@
 
         /* --- SIDEBAR --- */
         .sidebar {
-            width: var(--sidebar-width); background: var(--bg-dark); color: white;
-            position: fixed; height: 100vh; padding: 40px 24px;
-            display: flex; flex-direction: column; z-index: 100;
+            width: var(--sidebar-width);
+            background: var(--bg-dark);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
         }
 
         .brand { font-size: 22px; font-weight: 700; margin-bottom: 48px; display: flex; align-items: center; gap: 10px; }
@@ -208,25 +373,63 @@
         .stat-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
         .stat-value { font-size: 36px; font-weight: 800; margin-top: 12px; }
 
-        /* --- TABLE --- */
-        .table-container { background: white; border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; }
-        .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; }
+        /* --- TABLES & CONTAINERS --- */
+        .table-container { background: white; border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; margin-bottom: 40px; }
+        .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; display: flex; align-items: center; gap: 8px; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 15px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid #f1f5f9; }
-        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; }
+        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
 
-        /* --- BADGES --- */
-        .badge-ai { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        /* --- BADGES & MESSAGES --- */
+        .badge-ai { background: #fef3c7; color: #92400e; padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; display: inline-block; line-height: 1.5; white-space: pre-line; }
+        .badge-completed { background: #e0f2fe; color: #0369a1; padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; display: inline-block; line-height: 1.5; white-space: pre-line; width: 100%; }
         .status-tag { padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; }
         .status-new { background: #dcfce7; color: #166534; }
+        .status-done { background: #e0f2fe; color: #0369a1; }
+        
+        .django-messages { margin-bottom: 25px; list-style: none; }
+        .alert { padding: 15px 20px; border-radius: 12px; font-weight: 500; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .alert-error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
 
         .btn-review { 
             color: white; background: var(--accent-blue); padding: 10px 20px; 
             border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 14px;
-            transition: 0.2s; display: inline-block;
+            transition: 0.2s; display: inline-block; border: none; cursor: pointer;
         }
         .btn-review:hover { background: #1d4ed8; transform: translateY(-2px); }
 
+        /* --- CLINICAL WORKSPACE MODAL --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .modal-content { 
+            background: white; margin: 4% auto; padding: 30px; border-radius: 20px; 
+            width: 1150px; max-width: 95%; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border: none; animation: fadeIn 0.2s ease-out; 
+        }
+        .modal-workspace { display: flex; gap: 24px; margin-top: 20px; }
+        
+        /* Left Pane: Medical Scan Viewer */
+        .scan-viewer { 
+            flex: 1.1; background: #000000; border-radius: 12px; display: flex; 
+            align-items: center; justify-content: center; overflow: hidden; 
+            height: 520px; border: 1px solid #e2e8f0; 
+        }
+        .scan-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
+        .scan-fallback { color: #94a3b8; text-align: center; font-size: 14px; padding: 20px; display: block; }
+        
+        /* Right Pane */
+        .review-panel { flex: 1; display: flex; flex-direction: column; justify-content: space-between; height: 520px; }
+        .findings-box { background: #fef3c7; padding: 20px; border-radius: 12px; border: 1px solid #fef08a; height: 250px; overflow-y: auto; }
+        .findings-text { color: #92400e; font-size: 15px; line-height: 1.6; font-weight: 500; white-space: pre-line; }
+
+        .review-textarea { 
+            width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; 
+            font-size: 14px; margin-top: 6px; height: 110px; resize: none; 
+            background: #f8fafc; font-family: inherit; line-height: 1.4;
+        }
+        .review-textarea:focus { outline: 2px solid var(--accent-blue); background: white; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         .pulse { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 2s infinite; }
         @keyframes pulse-green {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
@@ -248,6 +451,17 @@
     </aside>
 
     <main class="main-content">
+        {% if messages %}
+        <ul class="django-messages">
+            {% for message in messages %}
+            <li class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                {% if message.tags == 'error' %}<i class="fa-solid fa-circle-exclamation"></i>{% else %}<i class="fa-solid fa-circle-check"></i>{% endif %}
+                {{ message }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
         <header class="header">
             <h1>Clinical Overview</h1>
             <p>Welcome, Dr. {{ doctor_name|default:"Physician" }} | <span style="color: var(--accent-blue); font-weight: 600;">Active Session</span></p>
@@ -271,13 +485,13 @@
         </section>
 
         <section class="table-container">
-            <h3>Recent Radiology Intake & AI Findings</h3>
+            <h3><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-blue);"></i> Recent Radiology Intake & AI Findings</h3>
             <table>
                 <thead>
                     <tr>
                         <th>Intake Date</th>
                         <th>Patient Name</th>
-                        <th>AI Prediction</th>
+                        <th style="width: 45%;">AI Prediction</th>
                         <th>Confidence</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -289,14 +503,55 @@
                         <td style="color: var(--text-muted);">{{ scan.created_at|date:"M d, H:i" }}</td>
                         <td style="font-weight: 600;">{{ scan.patient_name }}</td>
                         <td><span class="badge-ai">{{ scan.prediction }}</span></td>
-                        <td>{{ scan.confidence }}%</td>
+                        <td style="font-weight: 600;">{{ scan.confidence }}%</td>
                         <td><span class="status-tag status-new">Awaiting Review</span></td>
-                     <td><a href="{% url 'scan_report' scan.id %}" class="btn-review">Finalize Diagnosis</a></td>
+                        <td>
+                            <button type="button" class="btn-review" 
+                                onclick="openReviewModal('{{ scan.id }}', '{% if scan.image %}{{ scan.image.url }}{% endif %}')">
+                                Finalize Diagnosis
+                            </button>
+                        </td>
                     </tr>
-                {% empty %}
+                    {% empty %}
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 80px; color: #94a3b8;">
-                            No scans awaiting review.
+                        <td colspan="6" style="text-align: center; padding: 60px; color: #94a3b8;">
+                            <i class="fa-regular fa-folder-open" style="font-size: 40px; margin-bottom: 15px; display: block;"></i>
+                            No scans awaiting your review at this time.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="table-container" style="border-top: 4px solid #0284c7;">
+            <h3><i class="fa-solid fa-file-medical text-info" style="color: #0284c7;"></i> Signed Off Case Archives & Diagnosis Summaries</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sign Off Date</th>
+                        <th>Patient Name</th>
+                        <th style="width: 60%;">Final Report Summary (AI + Clinical Impression)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in completed_scans %}
+                    <tr>
+                        <td style="color: var(--text-muted);">{{ scan.updated_at|default:scan.created_at|date:"M d, H:i" }}</td>
+                        <td style="font-weight: 600; color: #0f172a;"><i class="fa-solid fa-user-doctor" style="font-size: 13px; color: var(--text-muted); margin-right: 4px;"></i> {{ scan.patient_name }}</td>
+                        <td>
+                            <div class="badge-completed">
+                                {{ scan.prediction }}
+                            </div>
+                        </td>
+                        <td><span class="status-tag status-done"><i class="fa-solid fa-check-double"></i> Verified</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 50px; color: #94a3b8;">
+                            <i class="fa-solid fa-signature" style="font-size: 34px; margin-bottom: 15px; display: block; color: #cbd5e1;"></i>
+                            No reports signed off during this session yet.
                         </td>
                     </tr>
                     {% endfor %}
@@ -305,14 +560,89 @@
         </section>
     </main>
 
+    {% for scan in recent_scans %}
+    <div id="modal-{{ scan.id }}" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+                <div>
+                    <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Reviewing Case For:</span>
+                    <h2 style="font-weight: 800; font-size: 22px; color: var(--text-main); margin-top: 2px;">{{ scan.patient_name }}</h2>
+                </div>
+                <span style="cursor:pointer; font-size: 22px; color: var(--text-muted);" onclick="closeReviewModal('{{ scan.id }}')"><i class="fa-solid fa-xmark"></i></span>
+            </div>
+            
+            <div class="modal-workspace">
+                <div class="scan-viewer">
+                    <img id="img-{{ scan.id }}" src="" alt="Radiology Scan Image for {{ scan.patient_name }}">
+                    <div id="fallback-{{ scan.id }}" class="scan-fallback">
+                        <i class="fa-solid fa-triangle-excursion" style="font-size: 30px; margin-bottom: 12px; display: block;"></i>
+                        No imaging scan file attached to this patient record.
+                    </div>
+                </div>
+
+                <div class="review-panel">
+                    <div class="findings-box">
+                        <strong style="color: #92400e; font-weight: 700; display: block; margin-bottom: 8px; font-size: 15px;">
+                            <i class="fa-solid fa-microscope me-1"></i> AI INITIAL FINDINGS:
+                        </strong>
+                        <div class="findings-text">{{ scan.prediction }}</div>
+                    </div>
+
+                    <form action="{% url 'scan_report' scan.id %}" method="POST" style="display: flex; flex-direction: column; flex-grow: 1; justify-content: flex-end;">
+                        {% csrf_token %}
+                        <div style="margin-bottom: 15px; margin-top: 10px;">
+                            <label style="font-weight: 700; font-size: 11px; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.3px;">Physician Notes & Final Diagnostic Impression</label>
+                            <textarea name="doctor_notes" class="review-textarea" placeholder="Type your formal diagnostic adjustments, clinical impressions, or confirm the computer-assisted AI findings here..."></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px;">
+                            <button type="submit" class="btn-review" style="flex: 2; padding: 12px; font-size: 14px;">
+                                <i class="fa-solid fa-circle-check me-1"></i> Finalize & Save Report
+                            </button>
+                            <button type="button" class="btn-review" style="flex: 1; background: #e2e8f0; color: var(--text-main); padding: 12px; font-size: 14px;" onclick="closeReviewModal('{{ scan.id }}')">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <script>
+        function openReviewModal(id, imageUrl) {
+            var modal = document.getElementById('modal-' + id);
+            var imgElement = document.getElementById('img-' + id);
+            var fallbackElement = document.getElementById('fallback-' + id);
+
+            if (imageUrl && imageUrl.trim() !== '') {
+                imgElement.src = imageUrl;
+                imgElement.style.display = "block";
+                fallbackElement.style.display = "none";
+            } else {
+                imgElement.style.display = "none";
+                fallbackElement.style.display = "block";
+            }
+
+            modal.style.display = "block";
+        }
+
+        function closeReviewModal(id) {
+            document.getElementById('modal-' + id).style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
 </body>
 </html> {% endcomment %}
 
 
-
-
-
-{% comment %} <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -335,9 +665,15 @@
 
         /* --- SIDEBAR --- */
         .sidebar {
-            width: var(--sidebar-width); background: var(--bg-dark); color: white;
-            position: fixed; height: 100vh; padding: 40px 24px;
-            display: flex; flex-direction: column; z-index: 100;
+            width: var(--sidebar-width);
+            background: var(--bg-dark);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
         }
 
         .brand { font-size: 22px; font-weight: 700; margin-bottom: 48px; display: flex; align-items: center; gap: 10px; }
@@ -361,26 +697,79 @@
         .stat-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
         .stat-value { font-size: 36px; font-weight: 800; margin-top: 12px; }
 
-        /* --- TABLE --- */
-        .table-container { background: white; border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; }
-        .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; }
+        /* --- TABLES & CONTAINERS --- */
+        .table-container { background: white; border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid #e2e8f0; margin-bottom: 40px; }
+        .table-container h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; display: flex; align-items: center; gap: 8px; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 15px; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid #f1f5f9; }
-        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; }
+        td { padding: 20px 15px; font-size: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
 
-        /* --- BADGES --- */
-        .badge-ai { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        /* --- BADGES & MESSAGES --- */
+        .badge-ai { background: #fef3c7; color: #92400e; padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; display: inline-block; line-height: 1.5; white-space: pre-line; }
+        
+        /* 🚀 FIXED CSS SPECIFICATION RULES FOR ACCURATE CONTAINER WRAPPING */
+        .badge-completed { 
+            background: #e0f2fe; 
+            color: #0369a1; 
+            padding: 14px 18px; 
+            border-radius: 10px; 
+            font-size: 14px; 
+            font-weight: 500; 
+            display: block; 
+            line-height: 1.6; 
+            white-space: pre-line; 
+            width: 100%; 
+            border: 1px solid #bae6fd;
+        }
+        
         .status-tag { padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; }
-        .status-new { background: #dcfce7; color: #166534; border: 1px solid #bcf0da; }
+        .status-new { background: #dcfce7; color: #166534; }
+        .status-done { background: #e0f2fe; color: #0369a1; }
+        
+        .django-messages { margin-bottom: 25px; list-style: none; }
+        .alert { padding: 15px 20px; border-radius: 12px; font-weight: 500; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .alert-error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
 
         .btn-review { 
             color: white; background: var(--accent-blue); padding: 10px 20px; 
-            border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 13px;
-            transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;
+            border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 14px;
+            transition: 0.2s; display: inline-block; border: none; cursor: pointer;
         }
-        .btn-review:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn-review:hover { background: #1d4ed8; transform: translateY(-2px); }
 
-        .pulse { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 2s infinite; margin-right: 5px; }
+        /* --- CLINICAL WORKSPACE MODAL --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .modal-content { 
+            background: white; margin: 4% auto; padding: 30px; border-radius: 20px; 
+            width: 1150px; max-width: 95%; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border: none; animation: fadeIn 0.2s ease-out; 
+        }
+        .modal-workspace { display: flex; gap: 24px; margin-top: 20px; }
+        
+        /* Left Pane: Medical Scan Viewer */
+        .scan-viewer { 
+            flex: 1.1; background: #000000; border-radius: 12px; display: flex; 
+            align-items: center; justify-content: center; overflow: hidden; 
+            height: 520px; border: 1px solid #e2e8f0; 
+        }
+        .scan-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
+        .scan-fallback { color: #94a3b8; text-align: center; font-size: 14px; padding: 20px; display: block; }
+        
+        /* Right Pane */
+        .review-panel { flex: 1; display: flex; flex-direction: column; justify-content: space-between; height: 520px; }
+        .findings-box { background: #fef3c7; padding: 20px; border-radius: 12px; border: 1px solid #fef08a; height: 250px; overflow-y: auto; }
+        .findings-text { color: #92400e; font-size: 15px; line-height: 1.6; font-weight: 500; white-space: pre-line; }
+
+        .review-textarea { 
+            width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; 
+            font-size: 14px; margin-top: 6px; height: 110px; resize: none; 
+            background: #f8fafc; font-family: inherit; line-height: 1.4;
+        }
+        .review-textarea:focus { outline: 2px solid var(--accent-blue); background: white; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .pulse { width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 2s infinite; }
         @keyframes pulse-green {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
@@ -401,6 +790,17 @@
     </aside>
 
     <main class="main-content">
+        {% if messages %}
+        <ul class="django-messages">
+            {% for message in messages %}
+            <li class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                {% if message.tags == 'error' %}<i class="fa-solid fa-circle-exclamation"></i>{% else %}<i class="fa-solid fa-circle-check"></i>{% endif %}
+                {{ message }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
         <header class="header">
             <h1>Clinical Overview</h1>
             <p>Welcome, Dr. {{ doctor_name|default:"Physician" }} | <span style="color: var(--accent-blue); font-weight: 600;">Active Session</span></p>
@@ -417,25 +817,23 @@
             </div>
             <div class="stat-card">
                 <div class="stat-label">Radiology Feed</div>
-                <div style="margin-top: 15px; font-weight: 600; color: #10b981; display: flex; align-items: center;">
+                <div style="margin-top: 15px; font-weight: 600; color: #10b981;">
                     <div class="pulse"></div> Live Sync Active
                 </div>
             </div>
         </section>
 
         <section class="table-container">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3>Recent Radiology Intake & AI Findings</h3>
-            </div>
+            <h3><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-blue);"></i> Recent Radiology Intake & AI Findings</h3>
             <table>
                 <thead>
                     <tr>
                         <th>Intake Date</th>
                         <th>Patient Name</th>
-                        <th>AI Prediction</th>
+                        <th style="width: 45%;">AI Prediction</th>
                         <th>Confidence</th>
                         <th>Status</th>
-                        <th style="text-align: right;">Action</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -444,24 +842,55 @@
                         <td style="color: var(--text-muted);">{{ scan.created_at|date:"M d, H:i" }}</td>
                         <td style="font-weight: 600;">{{ scan.patient_name }}</td>
                         <td><span class="badge-ai">{{ scan.prediction }}</span></td>
-                        <td>
-                            <div style="font-weight: 600;">{{ scan.confidence }}%</div>
-                            <div style="height: 4px; width: 50px; background: #e2e8f0; border-radius: 2px; margin-top: 4px;">
-                                <div style="height: 100%; width: {{ scan.confidence }}%; background: var(--accent-blue); border-radius: 2px;"></div>
-                            </div>
-                        </td>
+                        <td style="font-weight: 600;">{{ scan.confidence }}%</td>
                         <td><span class="status-tag status-new">Awaiting Review</span></td>
-                        <td style="text-align: right;">
-                            <a href="{% url 'scan_report' scan.id %}" class="btn-review">
-                                <i class="fa-solid fa-file-medical"></i> View Report
-                            </a>
+                        <td>
+                            <button type="button" class="btn-review" 
+                                onclick="openReviewModal('{{ scan.id }}', '{% if scan.image %}{{ scan.image.url }}{% endif %}')">
+                                Finalize Diagnosis
+                            </button>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 100px 0;">
-                            <i class="fa-solid fa-folder-open" style="font-size: 48px; color: #e2e8f0; margin-bottom: 15px; display: block;"></i>
-                            <p style="color: #94a3b8; font-size: 16px;">No scans awaiting your review at this time.</p>
+                        <td colspan="6" style="text-align: center; padding: 60px; color: #94a3b8;">
+                            <i class="fa-regular fa-folder-open" style="font-size: 40px; margin-bottom: 15px; display: block;"></i>
+                            No scans awaiting your review at this time.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="table-container" style="border-top: 4px solid #0284c7;">
+            <h3><i class="fa-solid fa-file-medical text-info" style="color: #0284c7;"></i> Signed Off Case Archives & Diagnosis Summaries</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sign Off Date</th>
+                        <th>Patient Name</th>
+                        <th style="width: 60%;">Final Report Summary (AI + Clinical Impression)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in completed_scans %}
+                    <tr>
+                        <td style="color: var(--text-muted);">{{ scan.updated_at|default:scan.created_at|date:"M d, H:i" }}</td>
+                        <td style="font-weight: 600; color: #0f172a;"><i class="fa-solid fa-user-doctor" style="font-size: 13px; color: var(--text-muted); margin-right: 4px;"></i> {{ scan.patient_name }}</td>
+                        <td>
+                            <div class="badge-completed">
+                                <p style="margin: 0; color: #0369a1; text-align: left; font-size: 14px; font-weight: 500;">{{ scan.prediction }}</p>
+                            </div>
+                        </td>
+                        <td><span class="status-tag status-done"><i class="fa-solid fa-check-double"></i> Verified</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 50px; color: #94a3b8;">
+                            <i class="fa-solid fa-signature" style="font-size: 34px; margin-bottom: 15px; display: block; color: #cbd5e1;"></i>
+                            No reports signed off during this session yet.
                         </td>
                     </tr>
                     {% endfor %}
@@ -470,5 +899,83 @@
         </section>
     </main>
 
+    {% for scan in recent_scans %}
+    <div id="modal-{{ scan.id }}" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+                <div>
+                    <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Reviewing Case For:</span>
+                    <h2 style="font-weight: 800; font-size: 22px; color: var(--text-main); margin-top: 2px;">{{ scan.patient_name }}</h2>
+                </div>
+                <span style="cursor:pointer; font-size: 22px; color: var(--text-muted);" onclick="closeReviewModal('{{ scan.id }}')"><i class="fa-solid fa-xmark"></i></span>
+            </div>
+            
+            <div class="modal-workspace">
+                <div class="scan-viewer">
+                    <img id="img-{{ scan.id }}" src="" alt="Radiology Scan Image for {{ scan.patient_name }}">
+                    <div id="fallback-{{ scan.id }}" class="scan-fallback">
+                        <i class="fa-solid fa-triangle-excursion" style="font-size: 30px; margin-bottom: 12px; display: block;"></i>
+                        No imaging scan file attached to this patient record.
+                    </div>
+                </div>
+
+                <div class="review-panel">
+                    <div class="findings-box">
+                        <strong style="color: #92400e; font-weight: 700; display: block; margin-bottom: 8px; font-size: 15px;">
+                            <i class="fa-solid fa-microscope me-1"></i> AI INITIAL FINDINGS:
+                        </strong>
+                        <div class="findings-text">{{ scan.prediction }}</div>
+                    </div>
+
+                    <form action="{% url 'scan_report' scan.id %}" method="POST" style="display: flex; flex-direction: column; flex-grow: 1; justify-content: flex-end;">
+                        {% csrf_token %}
+                        <div style="margin-bottom: 15px; margin-top: 10px;">
+                            <label style="font-weight: 700; font-size: 11px; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.3px;">Physician Notes & Final Diagnostic Impression</label>
+                            <textarea name="doctor_notes" class="review-textarea" placeholder="Type your formal diagnostic adjustments, clinical impressions, or confirm the computer-assisted AI findings here..."></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px;">
+                            <button type="submit" class="btn-review" style="flex: 2; padding: 12px; font-size: 14px;">
+                                <i class="fa-solid fa-circle-check me-1"></i> Finalize & Save Report
+                            </button>
+                            <button type="button" class="btn-review" style="flex: 1; background: #e2e8f0; color: var(--text-main); padding: 12px; font-size: 14px;" onclick="closeReviewModal('{{ scan.id }}')">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <script>
+        function openReviewModal(id, imageUrl) {
+            var modal = document.getElementById('modal-' + id);
+            var imgElement = document.getElementById('img-' + id);
+            var fallbackElement = document.getElementById('fallback-' + id);
+
+            if (imageUrl && imageUrl.trim() !== '') {
+                imgElement.src = imageUrl;
+                imgElement.style.display = "block";
+                fallbackElement.style.display = "none";
+            } else {
+                imgElement.style.display = "none";
+                fallbackElement.style.display = "block";
+            }
+
+            modal.style.display = "block";
+        }
+
+        function closeReviewModal(id) {
+            document.getElementById('modal-' + id).style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
 </body>
-</html> {% endcomment %}
+</html>

@@ -20,34 +20,7 @@ class DoctorRegisterModel(models.Model):
         return f"Dr. {self.username} ({self.license_number})"
     
 
-#ADD PATIENT
-# class Patient(models.Model):
-#     GENDER_CHOICES = [
-#         ('Male', 'Male'),
-#         ('Female', 'Female'),
-#         ('Other', 'Other'),
-#     ]
 
-#     # Basic Info
-#     name = models.CharField(max_length=255)
-#     age = models.IntegerField()
-#     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
-    
-#     # Optional contact info
-#     phone = models.CharField(max_length=20, blank=True, null=True)
-#     email = models.EmailField(blank=True, null=True)
-    
-#     # Metadata
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.name} (ID: {self.id})"
-
-#     @property
-#     def last_visit(self):
-#         """Used for the 'Last Visit' column in your dashboard table"""
-#         last_scan = self.scans.order_by('-created_at').first()
-#         return last_scan.created_at if last_scan else self.created_at
 
 
 class Patient(models.Model):

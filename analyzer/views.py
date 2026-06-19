@@ -79,12 +79,11 @@ def home(request):
     # This renders your new stylish home page
     return render(request, 'analyzer/home.html')
 
-# DOCTOR SECTION
+                   # DOCTOR SECTION
 def doctor(request):
     return render(request,'analyzer/DoctorDashboard.html')
 
-#  1. Doctor Registration View
-
+                    #  1. Doctor Registration View
 def doctor_register(request):
     if request.method == 'POST':
         form = DoctorRegisterForm(request.POST)
@@ -117,7 +116,7 @@ def doctor_register(request):
     return render(request, 'analyzer/DoctorRegister.html', {'form': form})
    
 
-# 2. Doctor Login View
+                     # 2. Doctor Login View
 def doctor_login(request):
     if request.method == 'POST':
         email_id = request.POST.get('email')
@@ -138,24 +137,7 @@ def doctor_login(request):
 
 @login_required
 
-
-
-def finalize_diagnosis(request, scan_id):
-    # Use get_object_or_404 for better error handling
-    scan = get_object_or_404(PatientScan, id=scan_id)
-    
-    if request.method == 'POST':
-        # Save the doctor's clinical notes
-        scan.doctor_notes = request.POST.get('notes')
-        # Optional: scan.is_reviewed = True 
-        scan.save()
-        return redirect('doctordashboard')
-        
-    return render(request, 'analyzer/FinalizeReport.html', {'scan': scan})
-
-
-
-#View TOTAL PATIENTs VIEW FOR DOCTOR
+                    #View TOTAL PATIENTs VIEW FOR DOCTOR
 def doctor_patient(request):
     # Fetch only patients added by the logged-in doctor
     # If you want them to see ALL patients, keep Patient.objects.all()
@@ -163,7 +145,7 @@ def doctor_patient(request):
     
     return render(request, 'analyzer/Doctor_patient.html', {'patients': patients})
 
-# ADD PATIENT VIEW FOR DOCTOR
+                     # ADD PATIENT VIEW FOR DOCTOR
 def add_patient(request):
     if request.method == "POST":
         name = request.POST.get('name')
@@ -268,13 +250,6 @@ def ai_inference_list(request):
 
 
 
-# def radiologist_dashboard(request):
-#     context = {
-#         'patients': Patient.objects.all(),
-#         'recent_uploads': PatientScan.objects.filter(uploaded_by=request.user).order_by('-created_at')[:10]
-#     }
-#     return render(request, 'analyzer/Radiologist/Radiologist_dashboard.html', context)
-
 #Radiologist Register
 
 def radiologist_register(request):
@@ -323,92 +298,6 @@ def radiologist_dashboard(request):
 
 
 # This is the new process_analysis function that captures the doctor selection from the radiologist dashboard form and assigns the AI-generated scan directly to that doctor. It also includes robust error handling for the AI response and database operations.
-# def process_analysis(request):
-#     if request.method != 'POST':
-#         return redirect('radiologist_dashboard')
-        
-#     patient_id = request.POST.get('patient_id')
-#     doctor_id = request.POST.get('doctor_id')  # 1. Capture the targeted doctor from the form
-#     modality = request.POST.get('modality')
-#     image = request.FILES.get('image')
-    
-#     if not image or not patient_id:
-#         messages.error(request, "Please select an active patient and upload a valid scan image.")
-#         return redirect('radiologist_dashboard')
-
-#     patient_obj = get_object_or_404(Patient, id=patient_id)
-    
-#     # CONVERT IMAGE TO BASE64 STRING FOR KAGGLE
-#     try:
-#         img_bytes = image.read()
-#         image.seek(0)  # Reset pointer head so Django can still save the physical file later
-#         image_b64 = base64.b64encode(img_bytes).decode('utf-8')
-#     except Exception as e:
-#         messages.error(request, f"Failed to process image encoding: {e}")
-#         return redirect('radiologist_dashboard')
-
-#     # Establish fallbacks
-#     prediction = "Pending Evaluation"
-#     confidence = 0.0
-    
-#     AI_URL = "https://nichelle-clerestoried-nonnasally.ngrok-free.dev/predict"
-    
-#     # SEND JSON POST REQUEST (Matching Kaggle's expected structure)
-#     try:
-#         json_payload = {"image": image_b64}
-#         response = requests.post(AI_URL, json=json_payload, timeout=45) 
-        
-#         if response.status_code == 200:
-#             try:
-#                 ai_data = response.json()
-#                 analysis_text = ai_data.get('analysis', '')
-#                 prediction = analysis_text if analysis_text else "Analysis complete (No text returned)"
-#                 confidence = 100.0  
-                
-#             except (ValueError, TypeError):
-#                 prediction = "Data Parsing Mismatch"
-#                 messages.warning(request, "AI responded, but returned an unreadable payload format.")
-#         else:
-#             prediction = f"AI Error ({response.status_code})"
-#             messages.warning(request, f"AI Gateway returned structural code {response.status_code}.")
-            
-#     except requests.exceptions.RequestException as e:
-#         prediction = "AI Engine Offline"
-#         messages.error(request, f"Could not bind connectivity to Kaggle server: {e}")
-
-#     # 2. DYNAMIC ROUTING LOGIC BASED ON YOUR CHOICE
-#     try:
-#         # Priority A: Use the explicit doctor selected from your radiologist form dropdown
-#         if doctor_id:
-#             target_doctor = get_object_or_404(User, id=doctor_id)
-#         # Priority B: Fall back to whoever created the patient profile originally
-#         elif patient_obj.added_by:
-#             target_doctor = patient_obj.added_by
-#         # Priority C: Ultimate fallback to the current user session agent
-#         else:
-#             target_doctor = request.user
-        
-#         PatientScan.objects.create(
-#             patient_name=patient_obj.name,
-#             image=image,
-#             modality=modality,
-#             prediction=prediction,     
-#             confidence=confidence,
-#             uploaded_by=request.user,
-#             assigned_doctor=target_doctor,  # Sends directly to the verified doctor's workspace
-#             is_submitted=True
-#         )
-#         PatientScan.save()
-#         messages.success(
-#             request, 
-#             f"Diagnostic file for {patient_obj.name} processed by MedGemma and sent directly to Dr. {target_doctor.last_name or target_doctor.username}."
-#         )
-        
-#     except Exception as e:
-#         messages.error(request, f"Critical Core System Database Write Failure: {e}")
-
-#     return redirect('radiologist_dashboard')
-
 
 def process_analysis(request):
     if request.method != 'POST':
@@ -449,7 +338,15 @@ def process_analysis(request):
             try:
                 ai_data = response.json()
                 analysis_text = ai_data.get('analysis', '')
-                prediction = analysis_text if analysis_text else "Analysis complete (No text returned)"
+                
+                if analysis_text:
+                    # =========================================================
+                    # THE FIX: CLEAN AND STRIP ALL MARKS/STARS FROM THE TEXT
+                    # =========================================================
+                    prediction = analysis_text.replace('*', '')
+                else:
+                    prediction = "Analysis complete (No text returned)"
+                    
                 confidence = 100.0  
                 
             except (ValueError, TypeError):
@@ -497,22 +394,108 @@ def process_analysis(request):
 
     return redirect('radiologist_dashboard')
 
+
 # Doctor dashboard for see the result send by Radiologist and add doctor notes and finalize the report. This view will also show the count of pending scans that are assigned to this doctor and marked as submitted but not yet finalized (i.e., doctor_notes is still null).
 def doctordashboard(request):
-    # Fetch scans assigned to this doctor that are marked submitted
+    # 1. Fetch pending items (don't contain the Physician Note tag yet)
     recent_scans = PatientScan.objects.filter(
         assigned_doctor=request.user, 
         is_submitted=True
+    ).exclude(
+        prediction__contains="PHYSICIAN IMPRESSION:"
+    ).order_by('-created_at')
+
+    # 2. Fetch signed off items to populate the new Diagnosis Summary component box
+    completed_scans = PatientScan.objects.filter(
+        assigned_doctor=request.user,
+        is_submitted=True
+    ).filter(
+        prediction__contains="PHYSICIAN IMPRESSION:"
     ).order_by('-created_at')
 
     context = {
         'total_patients': Patient.objects.filter(added_by=request.user).count(),
         'total_scans': PatientScan.objects.filter(assigned_doctor=request.user).count(),
         'recent_scans': recent_scans,
+        'completed_scans': completed_scans,  
         'doctor_name': request.user.username,
-        # FIX: Count scans that are submitted. (If you add a doctor notes field later for completed items, 
-        # you can filter out annotated scans by changing this to: filter(doctor_notes__isnull=True))
         'pending_count': recent_scans.count()  
     }
-    
     return render(request, 'analyzer/DoctorDashboard.html', context)
+
+#This is the new view that finalizes the diagnostic review when the doctor submits their notes from the modal on the doctor dashboard. It captures the doctor's notes, updates the PatientScan record, and marks it as no longer active in the queue feed.
+def finalize_diagnostic_review(request, scan_id):
+    if request.method == 'POST':
+        scan = get_object_or_404(PatientScan, id=scan_id)
+        doctor_notes = request.POST.get('doctor_notes', '').strip()
+        
+        if not doctor_notes:
+            messages.warning(request, "Cannot finalize report with empty clinical impressions.")
+            return redirect('doctordashboard')
+            
+        try:
+            # 🚀 This line appends the exact trigger token required by your dashboard filter
+            scan.prediction = f"{scan.prediction}\n\nPHYSICIAN IMPRESSION:\n{doctor_notes}"
+            scan.is_submitted = True  
+            scan.save()
+            
+            messages.success(request, f"Case file for {scan.patient_name} has been signed off successfully.")
+        except Exception as e:
+            messages.error(request, f"Failed to sign off diagnostic file: {e}")
+            
+    return redirect('doctordashboard')
+
+# from django.http import JsonResponse
+# from .models import Patient
+
+# def get_assigned_doctor(request):
+#     patient_id = request.GET.get('patient_id')
+#     if patient_id:
+#         try:
+#             patient = Patient.objects.get(id=patient_id)
+            
+#             if patient.added_by: 
+#                 return JsonResponse({
+#                     'status': 'success',
+#                     'doctor_id': patient.added_by.id
+#                 })
+#             else:
+#                 # 🚀 OPTIONAL: Instead of an error, you can return a default fallback doctor ID 
+#                 # if you have a default general hospital account, or keep it as empty success:
+#                 return JsonResponse({
+#                     'status': 'success', 
+#                     'doctor_id': None  # Tells JavaScript to just leave it blank safely
+#                 })
+                
+#         except Patient.DoesNotExist:
+#             return JsonResponse({'status': 'error', 'message': 'Patient not found'})
+            
+#     return JsonResponse({'status': 'error', 'message': 'Invalid selection'})
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import Patient
+
+def get_assigned_doctor(request):
+    patient_id = request.GET.get('patient_id')
+    if patient_id:
+        try:
+            patient = Patient.objects.get(id=patient_id)
+            
+            # Use your model's exact field 'added_by' to get the assigned doctor
+            if patient.added_by: 
+                return JsonResponse({
+                    'status': 'success',
+                    'doctor_id': patient.added_by.id
+                })
+            else:
+                # If no doctor is assigned to this patient record in the database
+                return JsonResponse({
+                    'status': 'success', 
+                    'doctor_id': None  # Sends clear 'null' value to your JavaScript engine
+                })
+                
+        except Patient.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Patient not found'})
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid selection'})
